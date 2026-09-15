@@ -1,0 +1,166 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/constants/launcher_constants.dart';
+import '../../../core/theme/launcher_palette.dart';
+import '../../../data/models/launcher_settings.dart';
+import '../controller/settings_controller.dart';
+import 'settings_screen.dart';
+
+/// FASE 9 — aparência (plano, secção 15).
+class AppearanceSettingsScreen extends ConsumerWidget {
+  const AppearanceSettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final LauncherSettings settings = ref.watch(settingsProvider);
+    final SettingsNotifier controller = ref.read(settingsProvider.notifier);
+
+    return Scaffold(
+      backgroundColor: context.palette.panel,
+      appBar: AppBar(title: const Text('Aparência')),
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          children: <Widget>[
+            const SettingsSectionTitle('Tema'),
+            RadioGroup<ThemePreference>(
+              groupValue: settings.theme,
+              onChanged: (ThemePreference? value) {
+                if (value != null) controller.setTheme(value);
+              },
+              child: Column(
+                children: <Widget>[
+                  for (final ThemePreference option in ThemePreference.values)
+                    RadioListTile<ThemePreference>(
+                      value: option,
+                      title: Text(_themeLabel(option)),
+                    ),
+                ],
+              ),
+            ),
+
+            const SettingsSectionTitle('Texto e espaçamento'),
+            _SliderTile(
+              title: 'Tamanho da letra',
+              value: settings.fontScale,
+              min: LauncherMetrics.minFontScale,
+              max: LauncherMetrics.maxFontScale,
+              format: (double v) => '${(v * 100).round()}%',
+              onChanged: controller.setFontScale,
+            ),
+            _SliderTile(
+              title: 'Espaço entre aplicações',
+              value: settings.itemSpacing,
+              min: LauncherMetrics.minItemSpacing,
+              max: LauncherMetrics.maxItemSpacing,
+              format: (double v) => '${v.round()} px',
+              onChanged: controller.setItemSpacing,
+            ),
+
+            const SettingsSectionTitle('Ecrã inicial'),
+            SwitchListTile(
+              value: settings.showClock,
+              title: const Text('Mostrar relógio'),
+              onChanged: (bool value) => controller.setShowClock(value: value),
+            ),
+            SwitchListTile(
+              value: settings.use24HourClock,
+              title: const Text('Formato 24 horas'),
+              onChanged: settings.showClock
+                  ? (bool value) => controller.setUse24HourClock(value: value)
+                  : null,
+            ),
+            SwitchListTile(
+              value: settings.showDate,
+              title: const Text('Mostrar data'),
+              onChanged: (bool value) => controller.setShowDate(value: value),
+            ),
+            SwitchListTile(
+              value: settings.showAlphabetIndex,
+              title: const Text('Mostrar índice alfabético'),
+              subtitle: const Text('A coluna A-Z à direita da Home'),
+              onChanged: (bool value) => controller.setShowAlphabetIndex(value: value),
+            ),
+            SwitchListTile(
+              value: settings.showIcons,
+              title: const Text('Mostrar ícones das aplicações'),
+              subtitle: const Text('Desligado, a lista fica só com texto'),
+              onChanged: (bool value) => controller.setShowIcons(value: value),
+            ),
+            SwitchListTile(
+              value: settings.animations,
+              title: const Text('Animações'),
+              subtitle: const Text('Desligar torna a navegação instantânea'),
+              onChanged: (bool value) => controller.setAnimations(value: value),
+            ),
+
+            const SettingsSectionTitle('Favoritos'),
+            _SliderTile(
+              title: 'Favoritos visíveis na Home',
+              value: settings.favoritesLimit.toDouble(),
+              min: LauncherMetrics.minFavorites.toDouble(),
+              max: LauncherMetrics.maxFavorites.toDouble(),
+              divisions: LauncherMetrics.maxFavorites - LauncherMetrics.minFavorites,
+              format: (double v) => '${v.round()}',
+              onChanged: (double value) => controller.setFavoritesLimit(value.round()),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static String _themeLabel(ThemePreference preference) => switch (preference) {
+        ThemePreference.light => 'Claro',
+        ThemePreference.dark => 'Escuro',
+        ThemePreference.system => 'Seguir o sistema',
+      };
+}
+
+class _SliderTile extends StatelessWidget {
+  const _SliderTile({
+    required this.title,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.format,
+    required this.onChanged,
+    this.divisions,
+  });
+
+  final String title;
+  final double value;
+  final double min;
+  final double max;
+  final int? divisions;
+  final String Function(double value) format;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(title, style: Theme.of(context).textTheme.bodyLarge),
+              Text(format(value), style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+          Slider(
+            value: value.clamp(min, max),
+            min: min,
+            max: max,
+            divisions: divisions,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}

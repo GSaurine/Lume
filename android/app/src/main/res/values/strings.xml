@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_label">Lume — gestos do sistema</string>
+    <string name="accessibility_service_description">Permite que o Lume abra o painel de notificações através de gestos. O Lume não lê nem regista o conteúdo do ecrã.</string>
+</resources>
