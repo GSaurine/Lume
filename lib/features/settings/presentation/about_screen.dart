@@ -12,8 +12,9 @@ import 'settings_screen.dart';
 class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
-  /// Manter em sincronia com `version:` no pubspec.yaml.
-  static const String version = '0.1.0';
+  /// Manter em sincronia com `version:` no pubspec.yaml — há um teste que
+  /// falha se as duas se separarem.
+  static const String version = '0.1.1';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
