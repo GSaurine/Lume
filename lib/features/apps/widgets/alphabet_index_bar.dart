@@ -15,6 +15,7 @@ class AlphabetIndexBar extends StatefulWidget {
     required this.onLetterChanged,
     this.selected,
     this.onInteractionEnd,
+    this.onWallpaper = true,
     super.key,
   });
 
@@ -24,6 +25,10 @@ class AlphabetIndexBar extends StatefulWidget {
   /// Recebe `null` quando o dedo sai da barra.
   final ValueChanged<String?> onLetterChanged;
   final VoidCallback? onInteractionEnd;
+
+  /// Na Home as letras ficam sobre o wallpaper e precisam de sombra; na lista
+  /// de aplicações estão sobre um painel opaco e não precisam.
+  final bool onWallpaper;
 
   @override
   State<AlphabetIndexBar> createState() => _AlphabetIndexBarState();
@@ -60,13 +65,17 @@ class _AlphabetIndexBarState extends State<AlphabetIndexBar> {
                 child: Center(
                   child: Text(
                     letter,
-                    style: style?.copyWith(
-                      color: letter == widget.selected
-                          ? palette.primaryText
-                          : palette.tertiaryText,
-                      fontWeight:
-                          letter == widget.selected ? FontWeight.w700 : FontWeight.w500,
-                    ),
+                    style: () {
+                      final TextStyle? base = style?.copyWith(
+                        color: letter == widget.selected
+                            ? palette.primaryText
+                            : palette.secondaryText,
+                        fontWeight: letter == widget.selected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                      );
+                      return widget.onWallpaper ? base.onWallpaper(context) : base;
+                    }(),
                   ),
                 ),
               ),

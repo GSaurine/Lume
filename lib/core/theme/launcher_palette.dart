@@ -16,30 +16,49 @@ class LauncherPalette extends ThemeExtension<LauncherPalette> {
     required this.scrim,
     required this.accent,
     required this.danger,
+    required this.textShadows,
   });
+
+  /// Sombras para texto desenhado sobre o wallpaper.
+  ///
+  /// Sem elas, o launcher fica ilegível: o tema segue o modo claro/escuro do
+  /// *sistema*, mas o wallpaper pode ter qualquer brilho. Um véu uniforme
+  /// escureceria a imagem toda; a sombra só escurece o que está debaixo das
+  /// letras.
+  static const List<Shadow> onLightWallpaper = <Shadow>[
+    Shadow(color: Color(0xB3FFFFFF), blurRadius: 12),
+    Shadow(color: Color(0x66FFFFFF), blurRadius: 2, offset: Offset(0, 1)),
+  ];
+
+  static const List<Shadow> onDarkWallpaper = <Shadow>[
+    Shadow(color: Color(0x99000000), blurRadius: 12),
+    Shadow(color: Color(0x4D000000), blurRadius: 2, offset: Offset(0, 1)),
+  ];
 
   /// Texto sobre wallpaper claro.
   static const LauncherPalette light = LauncherPalette(
     primaryText: Color(0xFF101014),
-    secondaryText: Color(0xFF4A4A52),
-    tertiaryText: Color(0xFF8A8A93),
+    secondaryText: Color(0xFF3A3A42),
+    tertiaryText: Color(0xFF5E5E66),
     panel: Color(0xF2FAFAFC),
     panelBorder: Color(0x14000000),
     scrim: Color(0x40FFFFFF),
     accent: Color(0xFF2B6CB0),
     danger: Color(0xFFB3261E),
+    textShadows: onLightWallpaper,
   );
 
   /// Texto sobre wallpaper escuro.
   static const LauncherPalette dark = LauncherPalette(
     primaryText: Color(0xFFF4F4F6),
-    secondaryText: Color(0xFFB4B4BC),
-    tertiaryText: Color(0xFF75757E),
+    secondaryText: Color(0xFFD2D2D9),
+    tertiaryText: Color(0xFFA9A9B4),
     panel: Color(0xF213131A),
     panelBorder: Color(0x1FFFFFFF),
     scrim: Color(0x59000000),
     accent: Color(0xFF8AB4F8),
     danger: Color(0xFFF2B8B5),
+    textShadows: onDarkWallpaper,
   );
 
   final Color primaryText;
@@ -56,6 +75,9 @@ class LauncherPalette extends ThemeExtension<LauncherPalette> {
   final Color accent;
   final Color danger;
 
+  /// Ver [onLightWallpaper] / [onDarkWallpaper].
+  final List<Shadow> textShadows;
+
   @override
   LauncherPalette copyWith({
     Color? primaryText,
@@ -66,6 +88,7 @@ class LauncherPalette extends ThemeExtension<LauncherPalette> {
     Color? scrim,
     Color? accent,
     Color? danger,
+    List<Shadow>? textShadows,
   }) {
     return LauncherPalette(
       primaryText: primaryText ?? this.primaryText,
@@ -76,6 +99,7 @@ class LauncherPalette extends ThemeExtension<LauncherPalette> {
       scrim: scrim ?? this.scrim,
       accent: accent ?? this.accent,
       danger: danger ?? this.danger,
+      textShadows: textShadows ?? this.textShadows,
     );
   }
 
@@ -91,6 +115,7 @@ class LauncherPalette extends ThemeExtension<LauncherPalette> {
       scrim: Color.lerp(scrim, other.scrim, t)!,
       accent: Color.lerp(accent, other.accent, t)!,
       danger: Color.lerp(danger, other.danger, t)!,
+      textShadows: t < 0.5 ? textShadows : other.textShadows,
     );
   }
 }
@@ -99,4 +124,12 @@ extension LauncherPaletteContext on BuildContext {
   /// Atalho: `context.palette.primaryText`.
   LauncherPalette get palette =>
       Theme.of(this).extension<LauncherPalette>() ?? LauncherPalette.dark;
+}
+
+extension WallpaperTextStyle on TextStyle? {
+  /// Para texto que fica por cima do wallpaper: Home, favoritos, índice
+  /// alfabético. Nos painéis opacos (definições, pesquisa, lista de apps)
+  /// não se usa — aí o fundo já garante contraste.
+  TextStyle onWallpaper(BuildContext context) =>
+      (this ?? const TextStyle()).copyWith(shadows: context.palette.textShadows);
 }

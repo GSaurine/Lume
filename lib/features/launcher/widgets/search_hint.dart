@@ -21,16 +21,18 @@ class SearchHint extends StatelessWidget {
     return Center(
       child: TextButton.icon(
         onPressed: onTap,
-        icon: Icon(Icons.keyboard_arrow_up_rounded, size: 20, color: palette.tertiaryText),
+        icon: Icon(Icons.keyboard_arrow_up_rounded, size: 20, color: palette.secondaryText),
         label: Text(
           'Pesquisar',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: palette.tertiaryText,
-              ),
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(color: palette.secondaryText)
+              .onWallpaper(context),
         ),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          foregroundColor: palette.tertiaryText,
+          foregroundColor: palette.secondaryText,
         ),
       ),
     );

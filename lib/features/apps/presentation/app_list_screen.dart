@@ -74,6 +74,7 @@ class _AppListScreenState extends ConsumerState<AppListScreen> {
                   child: AlphabetIndexBar(
                     letters: letters,
                     selected: _activeLetter,
+                    onWallpaper: false,
                     onLetterChanged: (String? letter) => _jumpTo(letter, entries),
                   ),
                 ),

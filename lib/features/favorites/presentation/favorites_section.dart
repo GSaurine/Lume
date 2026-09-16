@@ -32,7 +32,8 @@ class FavoritesSection extends ConsumerWidget {
           AppTile(
             app: app,
             key: ValueKey<String>('favorite-${app.id}'),
-            textStyle: Theme.of(context).textTheme.headlineSmall,
+            textStyle:
+                Theme.of(context).textTheme.headlineSmall.onWallpaper(context),
           ),
       ],
     );
@@ -52,10 +53,11 @@ class _EmptyFavoritesHint extends StatelessWidget {
       child: Text(
         'Arraste uma letra à direita ou deslize para cima para pesquisar.\n'
         'Mantenha um app premido para o guardar aqui.',
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: context.palette.tertiaryText,
-              height: 1.5,
-            ),
+        style: Theme.of(context)
+            .textTheme
+            .bodyMedium
+            ?.copyWith(color: context.palette.secondaryText, height: 1.5)
+            .onWallpaper(context),
       ),
     );
   }

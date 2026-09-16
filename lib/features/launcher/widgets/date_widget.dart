@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/launcher_palette.dart';
+
 /// Data por extenso, por baixo do relógio ("Segunda, 15 Setembro").
 ///
 /// Só se atualiza à meia-noite.
@@ -57,7 +59,7 @@ class _DateWidgetState extends State<DateWidget> with WidgetsBindingObserver {
 
     return Text(
       '${_capitalize(weekday)}, $day',
-      style: Theme.of(context).textTheme.titleMedium,
+      style: Theme.of(context).textTheme.titleMedium.onWallpaper(context),
     );
   }
 

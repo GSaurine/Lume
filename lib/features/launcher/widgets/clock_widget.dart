@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/launcher_palette.dart';
 import '../../settings/controller/settings_controller.dart';
 
 /// Relógio da Home.
@@ -64,7 +65,7 @@ class _ClockWidgetState extends ConsumerState<ClockWidget> with WidgetsBindingOb
 
     return Text(
       format.format(_now),
-      style: Theme.of(context).textTheme.displayLarge,
+      style: Theme.of(context).textTheme.displayLarge.onWallpaper(context),
       semanticsLabel: 'São ${format.format(_now)}',
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/launcher_constants.dart';
 import '../../../core/theme/launcher_palette.dart';
 import '../../../core/utils/launcher_route.dart';
+import '../../../core/utils/swipe_decision.dart';
 import '../../../data/models/installed_app.dart';
 import '../../../data/models/launcher_settings.dart';
 import '../../apps/controller/apps_controller.dart';
@@ -204,33 +205,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 /// Camada transparente que interpreta os gestos na área livre da Home.
-class _GestureLayer extends StatelessWidget {
+class _GestureLayer extends StatefulWidget {
   const _GestureLayer({required this.onGesture});
 
   final Future<void> Function(LauncherGesture gesture) onGesture;
+
+  @override
+  State<_GestureLayer> createState() => _GestureLayerState();
+}
+
+class _GestureLayerState extends State<_GestureLayer> {
+  double _verticalDelta = 0;
+  double _horizontalDelta = 0;
 
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onDoubleTap: () => onGesture(LauncherGesture.doubleTap),
+        onDoubleTap: () => widget.onGesture(LauncherGesture.doubleTap),
         onLongPress: () async {
           await HapticFeedback.mediumImpact();
           if (context.mounted) await _showHomeMenu(context);
         },
+        onVerticalDragStart: (_) => _verticalDelta = 0,
+        onVerticalDragUpdate: (DragUpdateDetails details) =>
+            _verticalDelta += details.delta.dy,
         onVerticalDragEnd: (DragEndDetails details) {
+          final double delta = _verticalDelta;
           final double velocity = details.velocity.pixelsPerSecond.dy;
-          if (velocity.abs() < LauncherMetrics.swipeVelocityThreshold) return;
-          onGesture(
-            velocity < 0 ? LauncherGesture.swipeUp : LauncherGesture.swipeDown,
+          _verticalDelta = 0;
+          if (!SwipeDecision.accepts(delta: delta, velocity: velocity)) return;
+          widget.onGesture(
+            SwipeDecision.isNegative(delta: delta, velocity: velocity)
+                ? LauncherGesture.swipeUp
+                : LauncherGesture.swipeDown,
           );
         },
+        onHorizontalDragStart: (_) => _horizontalDelta = 0,
+        onHorizontalDragUpdate: (DragUpdateDetails details) =>
+            _horizontalDelta += details.delta.dx,
         onHorizontalDragEnd: (DragEndDetails details) {
+          final double delta = _horizontalDelta;
           final double velocity = details.velocity.pixelsPerSecond.dx;
-          if (velocity.abs() < LauncherMetrics.swipeVelocityThreshold) return;
-          onGesture(
-            velocity < 0 ? LauncherGesture.swipeLeft : LauncherGesture.swipeRight,
+          _horizontalDelta = 0;
+          if (!SwipeDecision.accepts(delta: delta, velocity: velocity)) return;
+          widget.onGesture(
+            SwipeDecision.isNegative(delta: delta, velocity: velocity)
+                ? LauncherGesture.swipeLeft
+                : LauncherGesture.swipeRight,
           );
         },
       ),
@@ -298,8 +321,13 @@ class _WallpaperScrim extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: <Color>[scrim, Colors.transparent, scrim],
-              stops: const <double>[0, 0.45, 1],
+              colors: <Color>[
+                scrim,
+                scrim.withValues(alpha: scrim.a * 0.35),
+                scrim.withValues(alpha: scrim.a * 0.35),
+                scrim,
+              ],
+              stops: const <double>[0, 0.3, 0.7, 1],
             ),
           ),
         ),
