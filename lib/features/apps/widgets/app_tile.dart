@@ -82,7 +82,13 @@ class AppTile extends ConsumerWidget {
               behavior: HitTestBehavior.translucent,
               onTap: () => _launch(context, ref),
               onLongPress: () => _showMenu(context, ref),
-              child: content,
+              // O IgnorePointer é tão necessário como o `translucent`.
+              // Translucent faz o detetor receber os eventos mesmo sem nada
+              // por baixo, mas se um filho responder ao hit test a procura
+              // do Stack pára aqui na mesma — e o Text responde sempre, na
+              // largura toda por causa do Expanded. Silenciando o conteúdo,
+              // o gesto continua a descer até à camada de gestos da Home.
+              child: IgnorePointer(child: content),
             )
           : InkWell(
               onTap: () => _launch(context, ref),

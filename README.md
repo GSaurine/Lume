@@ -33,8 +33,8 @@ Implementação do [plano do projeto](launcher-android-plano-projeto.md).
 | 7 | Favoritos + Long Press | feito |
 | 8 | Settings | feito |
 | 9 | Temas claro/escuro/sistema | feito |
-| 10 | Performance | parcial — falta medir em dispositivo |
-| 11 | Testes | unitários feitos; falta teste em dispositivos |
+| 10 | Performance | arranque a frio em 489 ms no dispositivo de teste |
+| 11 | Testes | 43 testes; fluxos principais validados num dispositivo |
 | 12 | Release | ícone e assinatura feitos; faltam screenshots |
 
 Milestones 1 a 3 do plano (secção 22) estão cobertos.
@@ -171,8 +171,24 @@ Verificar um APK:
 apksigner verify --print-certs build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
 ```
 
+## Testes em dispositivo
+
+`tool/device_shot.sh` e `tool/device_input.sh` só capturam o ecrã ou enviam
+gestos quando o Lume está mesmo em primeiro plano e o ecrã está aceso. O
+telemóvel de testes é o telemóvel real de alguém: uma captura às cegas apanha
+o que estiver aberto.
+
+```bash
+tool/device_shot.sh build/device/home.png
+tool/device_input.sh swipe 700 1750 150 1750 250
+```
+
+Validado num Samsung Galaxy A16 5G com Android 16: arranque a frio em 489 ms,
+102 aplicações detetadas, abrir aplicações, índice alfabético, pesquisa,
+favoritos, menu de contexto e os gestos de deslizar.
+
 ## Por fazer
 
 - Screenshots para a página de release (FASE 12)
-- Medição de tempo de arranque e de listas grandes em dispositivo real
-- Testes em vários fabricantes e tamanhos de ecrã (FASE 11)
+- Listas muito grandes e dispositivos mais antigos ou lentos
+- Testes noutros fabricantes e tamanhos de ecrã (FASE 11)
