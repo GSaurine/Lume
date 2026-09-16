@@ -32,6 +32,7 @@ class FavoritesSection extends ConsumerWidget {
           AppTile(
             app: app,
             key: ValueKey<String>('favorite-${app.id}'),
+            overWallpaper: true,
             textStyle:
                 Theme.of(context).textTheme.headlineSmall.onWallpaper(context),
           ),
@@ -50,14 +51,19 @@ class _EmptyFavoritesHint extends StatelessWidget {
         horizontal: LauncherMetrics.horizontalPadding,
         vertical: 8,
       ),
-      child: Text(
-        'Arraste uma letra à direita ou deslize para cima para pesquisar.\n'
-        'Mantenha um app premido para o guardar aqui.',
-        style: Theme.of(context)
-            .textTheme
-            .bodyMedium
-            ?.copyWith(color: context.palette.secondaryText, height: 1.5)
-            .onWallpaper(context),
+      // IgnorePointer: um Text responde sempre ao hit test
+      // (RenderParagraph.hitTestSelf é true) e engolia os deslizes feitos por
+      // cima desta dica, que é texto puro e não tem nada para tocar.
+      child: IgnorePointer(
+        child: Text(
+          'Arraste uma letra à direita ou deslize para cima para pesquisar.\n'
+          'Mantenha um app premido para o guardar aqui.',
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(color: context.palette.secondaryText, height: 1.5)
+              .onWallpaper(context),
+        ),
       ),
     );
   }

@@ -22,6 +22,7 @@ class AppTile extends ConsumerWidget {
     this.dense = false,
     this.trailing,
     this.onLaunched,
+    this.overWallpaper = false,
     super.key,
   });
 
@@ -35,6 +36,13 @@ class AppTile extends ConsumerWidget {
   /// Chamado depois de o app abrir — usado para fechar a pesquisa.
   final VoidCallback? onLaunched;
 
+  /// Na Home, o item fica sobre o wallpaper e por baixo dele está a camada de
+  /// gestos. O `InkWell` usa `HitTestBehavior.opaque` e engoliria os deslizes
+  /// que começassem em cima de um favorito, por isso aí usamos um detetor
+  /// translúcido — assim o toque continua a funcionar e o arrasto passa.
+  /// A ondulação do Material também não assenta bem sobre uma fotografia.
+  final bool overWallpaper;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final showIcons = ref.watch(settingsProvider.select((s) => s.showIcons));
@@ -42,37 +50,46 @@ class AppTile extends ConsumerWidget {
         ? 4
         : ref.watch(settingsProvider.select((s) => s.itemSpacing));
 
+    final Widget content = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: LauncherMetrics.horizontalPadding,
+        vertical: 8 + spacing,
+      ),
+      child: Row(
+        children: <Widget>[
+          if (showIcons) ...<Widget>[
+            AppIcon(packageName: app.packageName),
+            const SizedBox(width: 14),
+          ],
+          Expanded(
+            child: Text(
+              app.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textStyle ?? Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+          ?trailing,
+        ],
+      ),
+    );
+
     return Semantics(
       button: true,
       label: app.name,
-      child: InkWell(
-        onTap: () => _launch(context, ref),
-        onLongPress: () => _showMenu(context, ref),
-        borderRadius: BorderRadius.circular(10),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: LauncherMetrics.horizontalPadding,
-            vertical: 8 + spacing,
-          ),
-          child: Row(
-            children: <Widget>[
-              if (showIcons) ...<Widget>[
-                AppIcon(packageName: app.packageName),
-                const SizedBox(width: 14),
-              ],
-              Expanded(
-                child: Text(
-                  app.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textStyle ?? Theme.of(context).textTheme.bodyLarge,
-                ),
-              ),
-              ?trailing,
-            ],
-          ),
-        ),
-      ),
+      child: overWallpaper
+          ? GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => _launch(context, ref),
+              onLongPress: () => _showMenu(context, ref),
+              child: content,
+            )
+          : InkWell(
+              onTap: () => _launch(context, ref),
+              onLongPress: () => _showMenu(context, ref),
+              borderRadius: BorderRadius.circular(10),
+              child: content,
+            ),
     );
   }
 

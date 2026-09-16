@@ -24,7 +24,10 @@ abstract final class LauncherRoute {
     final Duration duration = animate ? LauncherDurations.normal : Duration.zero;
 
     return PageRouteBuilder<T>(
-      opaque: false,
+      // Opaca de propósito: sem isto a Home continua a ser desenhada por
+      // baixo e o seu texto lê-se através do painel — o relógio e o banner
+      // apareciam como fantasmas atrás da lista de aplicações. O wallpaper
+      // continua visível porque é a janela do launcher que é transparente.
       barrierColor: Colors.transparent,
       transitionDuration: duration,
       reverseTransitionDuration: duration,

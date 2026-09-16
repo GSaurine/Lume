@@ -74,15 +74,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       padding: const EdgeInsets.symmetric(
                         horizontal: LauncherMetrics.horizontalPadding,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          if (settings.showClock) const ClockWidget(),
-                          if (settings.showDate) ...<Widget>[
-                            const SizedBox(height: 6),
-                            const DateWidget(),
+                      // Relógio e data são texto puro: sem IgnorePointer
+                      // absorviam os deslizes começados por cima deles.
+                      child: IgnorePointer(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            if (settings.showClock) const ClockWidget(),
+                            if (settings.showDate) ...<Widget>[
+                              const SizedBox(height: 6),
+                              const DateWidget(),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   const Spacer(),
