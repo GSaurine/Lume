@@ -19,6 +19,23 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
+
+# Ícone da aplicação (FASE 12).
+# Regenerar com: dart run flutter_launcher_icons
+#
+# assets/icon/icon.png                      -> ícone legacy (Android 7)
+# assets/icon/icon_foreground.png           -> camada da frente do adaptive icon,
+#                                              já recortada para a zona segura
+# assets/icon/icon_foreground_original.png  -> ficheiro original, guardado como fonte
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: false
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  adaptive_icon_monochrome: "assets/icon/icon_monochrome.png"
+  min_sdk_android: 24

@@ -35,7 +35,7 @@ Implementação do [plano do projeto](launcher-android-plano-projeto.md).
 | 9 | Temas claro/escuro/sistema | feito |
 | 10 | Performance | parcial — falta medir em dispositivo |
 | 11 | Testes | unitários feitos; falta teste em dispositivos |
-| 12 | Release | falta ícone, screenshots e assinatura própria |
+| 12 | Release | ícone e assinatura feitos; faltam screenshots |
 
 Milestones 1 a 3 do plano (secção 22) estão cobertos.
 
@@ -148,9 +148,31 @@ Permissões declaradas: `EXPAND_STATUS_BAR` e `REQUEST_DELETE_PACKAGES`, ambas
 normais. A lista de apps usa a `<queries>` por `MAIN`/`LAUNCHER`, não
 `QUERY_ALL_PACKAGES`.
 
+## Ícone
+
+Os ficheiros de origem estão em `assets/icon/`. O `icon_foreground_original.png`
+vem do editor com fundo branco e sombra; `tool/prepare_icons.py` separa o
+logótipo, remove a sombra e redimensiona-o para a keyline de 66dp do adaptive
+icon, para nenhuma máscara de fabricante lhe cortar os cantos.
+
+```bash
+python tool/prepare_icons.py
+dart run flutter_launcher_icons
+```
+
+## Assinatura
+
+O release é assinado com uma keystore própria lida de `android/key.properties`
+(fora do Git). Sem esse ficheiro, o build cai na chave de debug e avisa.
+
+Verificar um APK:
+
+```bash
+apksigner verify --print-certs build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+```
+
 ## Por fazer
 
-- Ícone e identidade visual da aplicação (FASE 12)
-- Chave de assinatura própria — o release usa a chave de debug
+- Screenshots para a página de release (FASE 12)
 - Medição de tempo de arranque e de listas grandes em dispositivo real
 - Testes em vários fabricantes e tamanhos de ecrã (FASE 11)
