@@ -17,6 +17,13 @@ void main() {
     expect(repository.load(), const LauncherSettings());
   });
 
+  test('os painéis são opacos de origem', () async {
+    // Veio do primeiro utilizador a experimentar o Lume: o wallpaper por trás
+    // da pesquisa atrapalhava a leitura.
+    final SettingsRepository repository = await makeRepository();
+    expect(repository.load().panelOpacity, 1);
+  });
+
   test('o Swipe Up abre a pesquisa de origem (plano, secção 13)', () async {
     final SettingsRepository repository = await makeRepository();
     expect(
@@ -33,6 +40,7 @@ void main() {
       fontScale: 1.2,
       itemSpacing: 12,
       showIcons: true,
+      panelOpacity: 0.8,
       showClock: false,
       showDate: false,
       showAlphabetIndex: false,
@@ -63,6 +71,8 @@ void main() {
     expect(settings.copyWith(fontScale: 0).fontScale, greaterThanOrEqualTo(0.85));
     expect(settings.copyWith(favoritesLimit: 100).favoritesLimit, 10);
     expect(settings.copyWith(favoritesLimit: 0).favoritesLimit, 3);
+    expect(settings.copyWith(panelOpacity: 5).panelOpacity, 1);
+    expect(settings.copyWith(panelOpacity: 0).panelOpacity, greaterThanOrEqualTo(0.7));
   });
 
   test('duration devolve zero quando as animações estão desligadas', () {

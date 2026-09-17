@@ -7,13 +7,24 @@ import 'launcher_palette.dart';
 /// Material 3 como base, mas sem a sua "cor de superfície": a Home é
 /// transparente e mostra o wallpaper (plano, secção 18).
 abstract final class AppTheme {
-  static ThemeData light(double fontScale) =>
-      _build(Brightness.light, LauncherPalette.light, fontScale);
+  static ThemeData light({required double fontScale, required double panelOpacity}) =>
+      _build(Brightness.light, LauncherPalette.light, fontScale, panelOpacity);
 
-  static ThemeData dark(double fontScale) =>
-      _build(Brightness.dark, LauncherPalette.dark, fontScale);
+  static ThemeData dark({required double fontScale, required double panelOpacity}) =>
+      _build(Brightness.dark, LauncherPalette.dark, fontScale, panelOpacity);
 
-  static ThemeData _build(Brightness brightness, LauncherPalette palette, double fontScale) {
+  static ThemeData _build(
+    Brightness brightness,
+    LauncherPalette basePalette,
+    double fontScale,
+    double panelOpacity,
+  ) {
+    // A transparência dos painéis vive só aqui. Assim tudo o que use
+    // `context.palette.panel` — pesquisa, lista, definições, folhas — segue a
+    // definição sem ter de a ler por conta própria.
+    final LauncherPalette palette = basePalette.copyWith(
+      panel: basePalette.panel.withValues(alpha: panelOpacity),
+    );
     final ColorScheme scheme = ColorScheme.fromSeed(
       seedColor: palette.accent,
       brightness: brightness,

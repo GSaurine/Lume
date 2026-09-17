@@ -88,6 +88,19 @@ class AppearanceSettingsScreen extends ConsumerWidget {
               subtitle: const Text('Desligado, a lista fica só com texto'),
               onChanged: (bool value) => controller.setShowIcons(value: value),
             ),
+
+            const SettingsSectionTitle('Painéis'),
+            _SliderTile(
+              title: 'Opacidade dos painéis',
+              subtitle: 'Pesquisa, lista de aplicações e definições. '
+                  'Abaixo de 100% deixa ver o wallpaper por trás.',
+              value: settings.panelOpacity,
+              min: LauncherMetrics.minPanelOpacity,
+              max: LauncherMetrics.maxPanelOpacity,
+              divisions: 6,
+              format: (double v) => '${(v * 100).round()}%',
+              onChanged: controller.setPanelOpacity,
+            ),
             SwitchListTile(
               value: settings.animations,
               title: const Text('Animações'),
@@ -128,9 +141,11 @@ class _SliderTile extends StatelessWidget {
     required this.format,
     required this.onChanged,
     this.divisions,
+    this.subtitle,
   });
 
   final String title;
+  final String? subtitle;
   final double value;
   final double min;
   final double max;
@@ -148,10 +163,14 @@ class _SliderTile extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text(title, style: Theme.of(context).textTheme.bodyLarge),
+              Expanded(
+                child: Text(title, style: Theme.of(context).textTheme.bodyLarge),
+              ),
               Text(format(value), style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
+          if (subtitle case final String text)
+            Text(text, style: Theme.of(context).textTheme.bodySmall),
           Slider(
             value: value.clamp(min, max),
             min: min,

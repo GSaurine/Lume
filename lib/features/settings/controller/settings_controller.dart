@@ -27,6 +27,8 @@ class SettingsNotifier extends Notifier<LauncherSettings> {
 
   void setShowIcons({required bool value}) => _update(state.copyWith(showIcons: value));
 
+  void setPanelOpacity(double value) => _update(state.copyWith(panelOpacity: value));
+
   void setShowClock({required bool value}) => _update(state.copyWith(showClock: value));
 
   void setShowDate({required bool value}) => _update(state.copyWith(showDate: value));

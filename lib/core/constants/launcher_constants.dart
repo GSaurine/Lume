@@ -18,6 +18,7 @@ abstract final class PreferenceKeys {
   static const String fontScale = 'settings.font_scale';
   static const String itemSpacing = 'settings.item_spacing';
   static const String showIcons = 'settings.show_icons';
+  static const String panelOpacity = 'settings.panel_opacity';
   static const String showClock = 'settings.show_clock';
   static const String showDate = 'settings.show_date';
   static const String showAlphabetIndex = 'settings.show_alphabet_index';
@@ -49,6 +50,11 @@ abstract final class LauncherMetrics {
   static const double maxFontScale = 1.35;
   static const double minItemSpacing = 0;
   static const double maxItemSpacing = 16;
+
+  /// Opacidade dos painéis (pesquisa, lista, definições). Não desce abaixo
+  /// de 0.7: mais do que isso e o wallpaper come o texto por baixo.
+  static const double minPanelOpacity = 0.7;
+  static const double maxPanelOpacity = 1;
 
   static const int minFavorites = 3;
   static const int maxFavorites = 10;

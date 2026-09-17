@@ -40,7 +40,7 @@ class LauncherPalette extends ThemeExtension<LauncherPalette> {
     primaryText: Color(0xFF101014),
     secondaryText: Color(0xFF3A3A42),
     tertiaryText: Color(0xFF5E5E66),
-    panel: Color(0xF2FAFAFC),
+    panel: Color(0xFFFAFAFC),
     panelBorder: Color(0x14000000),
     scrim: Color(0x40FFFFFF),
     accent: Color(0xFF2B6CB0),
@@ -53,7 +53,7 @@ class LauncherPalette extends ThemeExtension<LauncherPalette> {
     primaryText: Color(0xFFF4F4F6),
     secondaryText: Color(0xFFD2D2D9),
     tertiaryText: Color(0xFFA9A9B4),
-    panel: Color(0xF213131A),
+    panel: Color(0xFF13131A),
     panelBorder: Color(0x1FFFFFFF),
     scrim: Color(0x59000000),
     accent: Color(0xFF8AB4F8),
@@ -66,6 +66,9 @@ class LauncherPalette extends ThemeExtension<LauncherPalette> {
   final Color tertiaryText;
 
   /// Fundo de painéis, folhas e ecrãs de definições.
+  ///
+  /// Opaca na paleta base; a transparência é aplicada por [AppTheme] a partir
+  /// da definição do utilizador, para o valor viver num sítio só.
   final Color panel;
   final Color panelBorder;
 

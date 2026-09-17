@@ -1,5 +1,14 @@
 # Registo de alterações
 
+## Por publicar
+
+### Alterado
+
+- **Os painéis passam a ser opacos por omissão.** O primeiro utilizador a
+  experimentar o Lume queixou-se de o wallpaper por trás da pesquisa
+  atrapalhar a leitura. A transparência passa a ser uma definição
+  (Aparência → Painéis), regulável entre 70% e 100%.
+
 ## v0.1.1
 
 Correções encontradas ao testar num dispositivo real (Samsung Galaxy A16 5G,

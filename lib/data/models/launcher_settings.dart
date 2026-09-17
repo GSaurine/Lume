@@ -83,6 +83,7 @@ class LauncherSettings {
     this.fontScale = 1,
     this.itemSpacing = 6,
     this.showIcons = false,
+    this.panelOpacity = 1,
     this.showClock = true,
     this.showDate = true,
     this.showAlphabetIndex = true,
@@ -114,6 +115,11 @@ class LauncherSettings {
   /// Ícones desligados por omissão: a lista só com texto é a identidade
   /// visual do launcher (plano, secção 2).
   final bool showIcons;
+
+  /// Opacidade dos painéis de ecrã inteiro. Opacos por omissão: o primeiro
+  /// utilizador a experimentar o Lume queixou-se de o wallpaper atrapalhar a
+  /// leitura na pesquisa. Quem gostar do efeito baixa este valor.
+  final double panelOpacity;
   final bool showClock;
   final bool showDate;
   final bool showAlphabetIndex;
@@ -139,6 +145,7 @@ class LauncherSettings {
     double? fontScale,
     double? itemSpacing,
     bool? showIcons,
+    double? panelOpacity,
     bool? showClock,
     bool? showDate,
     bool? showAlphabetIndex,
@@ -158,6 +165,8 @@ class LauncherSettings {
       itemSpacing: (itemSpacing ?? this.itemSpacing)
           .clamp(LauncherMetrics.minItemSpacing, LauncherMetrics.maxItemSpacing),
       showIcons: showIcons ?? this.showIcons,
+      panelOpacity: (panelOpacity ?? this.panelOpacity)
+          .clamp(LauncherMetrics.minPanelOpacity, LauncherMetrics.maxPanelOpacity),
       showClock: showClock ?? this.showClock,
       showDate: showDate ?? this.showDate,
       showAlphabetIndex: showAlphabetIndex ?? this.showAlphabetIndex,
@@ -181,6 +190,7 @@ class LauncherSettings {
           other.fontScale == fontScale &&
           other.itemSpacing == itemSpacing &&
           other.showIcons == showIcons &&
+          other.panelOpacity == panelOpacity &&
           other.showClock == showClock &&
           other.showDate == showDate &&
           other.showAlphabetIndex == showAlphabetIndex &&
@@ -199,6 +209,7 @@ class LauncherSettings {
         fontScale,
         itemSpacing,
         showIcons,
+        panelOpacity,
         showClock,
         showDate,
         showAlphabetIndex,

@@ -17,6 +17,8 @@ class SettingsRepository {
       itemSpacing:
           _prefs.getDouble(PreferenceKeys.itemSpacing, fallback: defaults.itemSpacing),
       showIcons: _prefs.getBool(PreferenceKeys.showIcons, fallback: defaults.showIcons),
+      panelOpacity:
+          _prefs.getDouble(PreferenceKeys.panelOpacity, fallback: defaults.panelOpacity),
       showClock: _prefs.getBool(PreferenceKeys.showClock, fallback: defaults.showClock),
       showDate: _prefs.getBool(PreferenceKeys.showDate, fallback: defaults.showDate),
       showAlphabetIndex: _prefs.getBool(
@@ -50,6 +52,7 @@ class SettingsRepository {
       _prefs.setDouble(PreferenceKeys.fontScale, settings.fontScale),
       _prefs.setDouble(PreferenceKeys.itemSpacing, settings.itemSpacing),
       _prefs.setBool(PreferenceKeys.showIcons, value: settings.showIcons),
+      _prefs.setDouble(PreferenceKeys.panelOpacity, settings.panelOpacity),
       _prefs.setBool(PreferenceKeys.showClock, value: settings.showClock),
       _prefs.setBool(PreferenceKeys.showDate, value: settings.showDate),
       _prefs.setBool(PreferenceKeys.showAlphabetIndex, value: settings.showAlphabetIndex),
