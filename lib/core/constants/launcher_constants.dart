@@ -17,11 +17,16 @@ abstract final class PreferenceKeys {
   /// Nomes dados pelo utilizador, em JSON: {packageName: nome}.
   static const String appLabels = 'app_labels';
 
+  /// Símbolos escolhidos pelo utilizador: {packageName: chave do símbolo}.
+  static const String appSymbols = 'app_symbols';
+
   static const String theme = 'settings.theme';
   static const String fontScale = 'settings.font_scale';
   static const String itemSpacing = 'settings.item_spacing';
   static const String showIcons = 'settings.show_icons';
   static const String panelOpacity = 'settings.panel_opacity';
+  static const String iconStyle = 'settings.icon_style';
+  static const String animationStyle = 'settings.animation_style';
   static const String accentColor = 'settings.accent_color';
   static const String contentAlignment = 'settings.content_alignment';
   static const String showClock = 'settings.show_clock';
@@ -41,6 +46,9 @@ abstract final class PreferenceKeys {
 
 /// Números mágicos da UI num só sítio.
 abstract final class LauncherMetrics {
+  /// Lado do quadrado do seletor de símbolos.
+  static const double symbolPickerTile = 62;
+
   /// Lado do ícone pedido ao Android, em pixels. Um só tamanho mantém a
   /// cache do Kotlin e a ImageCache do Flutter pequenas (FASE 10).
   static const int iconPixelSize = 144;

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/launcher_palette.dart';
 import '../../../core/utils/launcher_route.dart';
+import '../../../data/models/launcher_settings.dart';
 import '../controller/settings_controller.dart';
 import 'about_screen.dart';
 import 'appearance_settings_screen.dart';
@@ -10,16 +11,18 @@ import 'apps_settings_screen.dart';
 import 'gestures_settings_screen.dart';
 import 'search_settings_screen.dart';
 
+
 /// FASE 8 — Definições (plano, secção 16).
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bool animate = ref.watch(settingsProvider.select((s) => s.animations));
+    final MotionStyle style =
+        ref.watch(settingsProvider.select((s) => s.animations));
 
     void open(Widget screen) {
-      Navigator.of(context).push(LauncherRoute.fromRight<void>(screen, animate: animate));
+      Navigator.of(context).push(LauncherRoute.fromRight<void>(screen, style: style));
     }
 
     return Scaffold(

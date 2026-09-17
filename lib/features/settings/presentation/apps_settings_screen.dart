@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/launcher_symbols.dart';
 import '../../../core/theme/launcher_palette.dart';
 import '../../../data/models/installed_app.dart';
+import '../../../data/models/launcher_settings.dart';
 import '../../apps/controller/apps_controller.dart';
 import '../../apps/widgets/app_icon.dart';
 import '../controller/settings_controller.dart';
@@ -18,6 +20,11 @@ class AppsSettingsScreen extends ConsumerWidget {
         ref.watch(settingsProvider.select((s) => s.showSystemApps));
     final Set<String> hidden = ref.watch(hiddenAppsProvider);
     final Map<String, String> labels = ref.watch(appLabelsProvider);
+    final Map<String, String> symbols = ref.watch(appSymbolsProvider);
+    final Map<String, InstalledApp> byPackage = <String, InstalledApp>{
+      for (final InstalledApp app in ref.watch(visibleAppsProvider))
+        app.packageName: app,
+    };
     final List<InstalledApp> allApps =
         ref.watch(installedAppsProvider).value ?? const <InstalledApp>[];
     final List<InstalledApp> hiddenApps = allApps
@@ -71,7 +78,11 @@ class AppsSettingsScreen extends ConsumerWidget {
             else ...<Widget>[
               for (final MapEntry<String, String> entry in labels.entries)
                 ListTile(
-                  leading: AppIcon(packageName: entry.key),
+                  leading: switch (byPackage[entry.key]) {
+                    final InstalledApp app =>
+                      AppIcon(app: app, style: IconStyle.symbols),
+                    null => null,
+                  },
                   title: Text(entry.value),
                   subtitle: Text(entry.key),
                   trailing: TextButton(
@@ -89,6 +100,42 @@ class AppsSettingsScreen extends ConsumerWidget {
               ),
             ],
 
+            SettingsSectionTitle('Ícones escolhidos (${symbols.length})'),
+            if (symbols.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  'O Lume sugere um símbolo a cada aplicação a partir do nome '
+                  'e do package. Mantenha uma premida e escolha "Escolher '
+                  'ícone" para trocar — a sua escolha ganha sempre ao palpite.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              )
+            else ...<Widget>[
+              for (final MapEntry<String, String> entry in symbols.entries)
+                if (byPackage[entry.key] case final InstalledApp app)
+                  ListTile(
+                    leading: AppIcon(app: app, style: IconStyle.symbols),
+                    title: Text(app.name),
+                    subtitle: Text(
+                      LauncherSymbol.tryParse(entry.value)?.label ?? entry.value,
+                    ),
+                    trailing: TextButton(
+                      onPressed: () => ref
+                          .read(appSymbolsProvider.notifier)
+                          .assign(entry.key, null),
+                      child: const Text('Automático'),
+                    ),
+                  ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: OutlinedButton(
+                  onPressed: () => ref.read(appSymbolsProvider.notifier).resetAll(),
+                  child: const Text('Repor todos os ícones'),
+                ),
+              ),
+            ],
+
             SettingsSectionTitle('Ocultas (${hiddenApps.length})'),
             if (hiddenApps.isEmpty)
               Padding(
@@ -102,7 +149,7 @@ class AppsSettingsScreen extends ConsumerWidget {
             else ...<Widget>[
               for (final InstalledApp app in hiddenApps)
                 ListTile(
-                  leading: AppIcon(packageName: app.packageName),
+                  leading: AppIcon(app: app, style: IconStyle.symbols),
                   title: Text(app.name),
                   trailing: TextButton(
                     onPressed: () =>

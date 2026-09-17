@@ -1,60 +1,64 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lume_launcher/core/constants/launcher_constants.dart';
 import 'package:lume_launcher/core/providers/core_providers.dart';
 import 'package:lume_launcher/data/models/installed_app.dart';
-import 'package:lume_launcher/data/repositories/app_labels_repository.dart';
+import 'package:lume_launcher/data/repositories/package_map_repository.dart';
 import 'package:lume_launcher/data/services/preferences_service.dart';
 import 'package:lume_launcher/features/apps/controller/apps_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<AppLabelsRepository> makeRepository([Map<String, Object>? initial]) async {
+Future<PackageMapRepository> makeRepository([Map<String, Object>? initial]) async {
   SharedPreferences.setMockInitialValues(initial ?? <String, Object>{});
-  return AppLabelsRepository(await PreferencesService.load());
+  return PackageMapRepository(
+    await PreferencesService.load(),
+    PreferenceKeys.appLabels,
+  );
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('AppLabelsRepository', () {
+  group('PackageMapRepository', () {
     test('começa vazio', () async {
-      final AppLabelsRepository repository = await makeRepository();
-      expect(repository.labels(), isEmpty);
+      final PackageMapRepository repository = await makeRepository();
+      expect(repository.read(), isEmpty);
     });
 
     test('guarda e volta a ler', () async {
-      final AppLabelsRepository repository = await makeRepository();
+      final PackageMapRepository repository = await makeRepository();
       await repository.save(<String, String>{'com.whatsapp': 'Zap'});
-      expect(repository.labels(), <String, String>{'com.whatsapp': 'Zap'});
+      expect(repository.read(), <String, String>{'com.whatsapp': 'Zap'});
     });
 
     test('aceita nomes com caracteres que partiriam um formato de pares', () async {
       // É por isto que é JSON e não "package=nome": tudo o que se escolhesse
       // como separador pode aparecer dentro de um nome.
-      final AppLabelsRepository repository = await makeRepository();
+      final PackageMapRepository repository = await makeRepository();
       const String awkward = 'a=b,c;d"e\\f{g}';
       await repository.save(<String, String>{'com.exemplo': awkward});
-      expect(repository.labels()['com.exemplo'], awkward);
+      expect(repository.read()['com.exemplo'], awkward);
     });
 
     test('nomes em branco não são guardados', () async {
-      final AppLabelsRepository repository = await makeRepository();
+      final PackageMapRepository repository = await makeRepository();
       final Map<String, String> saved =
           await repository.save(<String, String>{'com.exemplo': '   '});
       expect(saved, isEmpty);
-      expect(repository.labels(), isEmpty);
+      expect(repository.read(), isEmpty);
     });
 
     test('espaços à volta são removidos', () async {
-      final AppLabelsRepository repository = await makeRepository();
+      final PackageMapRepository repository = await makeRepository();
       await repository.save(<String, String>{'com.exemplo': '  Banco  '});
-      expect(repository.labels()['com.exemplo'], 'Banco');
+      expect(repository.read()['com.exemplo'], 'Banco');
     });
 
     test('preferências corrompidas não rebentam o arranque', () async {
-      final AppLabelsRepository repository = await makeRepository(<String, Object>{
+      final PackageMapRepository repository = await makeRepository(<String, Object>{
         'flutter.app_labels': 'isto não é JSON',
       });
-      expect(repository.labels(), isEmpty);
+      expect(repository.read(), isEmpty);
     });
   });
 

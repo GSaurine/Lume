@@ -39,12 +39,12 @@ void main() {
       theme: ThemePreference.dark,
       fontScale: 1.2,
       itemSpacing: 12,
-      showIcons: true,
+      iconStyle: IconStyle.appIcons,
       panelOpacity: 0.8,
       showClock: false,
       showDate: false,
       showAlphabetIndex: false,
-      animations: false,
+      animations: MotionStyle.none,
       use24HourClock: false,
       showSystemApps: false,
       searchPackageNames: true,
@@ -75,13 +75,26 @@ void main() {
     expect(settings.copyWith(panelOpacity: 0).panelOpacity, greaterThanOrEqualTo(0.7));
   });
 
-  test('duration devolve zero quando as animações estão desligadas', () {
-    const LauncherSettings on = LauncherSettings();
-    const LauncherSettings off = LauncherSettings(animations: false);
-    const Duration input = Duration(milliseconds: 200);
+  test('duration segue o estilo de animação escolhido', () {
+    const Duration base = Duration(milliseconds: 200);
 
-    expect(on.duration(input), input);
-    expect(off.duration(input), Duration.zero);
+    expect(
+      const LauncherSettings(animations: MotionStyle.none).duration(base),
+      Duration.zero,
+    );
+    expect(
+      const LauncherSettings().duration(base),
+      base,
+    );
+    // Um estilo mais expressivo alonga o movimento.
+    expect(
+      const LauncherSettings(animations: MotionStyle.smooth).duration(base),
+      greaterThan(base),
+    );
+    expect(
+      const LauncherSettings(animations: MotionStyle.crisp).duration(base),
+      lessThan(base),
+    );
   });
 
   test('reset apaga tudo', () async {

@@ -16,7 +16,10 @@ class SettingsRepository {
       fontScale: _prefs.getDouble(PreferenceKeys.fontScale, fallback: defaults.fontScale),
       itemSpacing:
           _prefs.getDouble(PreferenceKeys.itemSpacing, fallback: defaults.itemSpacing),
-      showIcons: _prefs.getBool(PreferenceKeys.showIcons, fallback: defaults.showIcons),
+      iconStyle: IconStyle.parse(
+        _prefs.getString(PreferenceKeys.iconStyle),
+        fallback: defaults.iconStyle,
+      ),
       panelOpacity:
           _prefs.getDouble(PreferenceKeys.panelOpacity, fallback: defaults.panelOpacity),
       accent: AccentColor.parse(
@@ -30,7 +33,7 @@ class SettingsRepository {
         PreferenceKeys.showAlphabetIndex,
         fallback: defaults.showAlphabetIndex,
       ),
-      animations: _prefs.getBool(PreferenceKeys.animations, fallback: defaults.animations),
+      animations: MotionStyle.parse(_prefs.getString(PreferenceKeys.animationStyle)),
       use24HourClock:
           _prefs.getBool(PreferenceKeys.use24HourClock, fallback: defaults.use24HourClock),
       showSystemApps:
@@ -56,7 +59,7 @@ class SettingsRepository {
       _prefs.setString(PreferenceKeys.theme, settings.theme.key),
       _prefs.setDouble(PreferenceKeys.fontScale, settings.fontScale),
       _prefs.setDouble(PreferenceKeys.itemSpacing, settings.itemSpacing),
-      _prefs.setBool(PreferenceKeys.showIcons, value: settings.showIcons),
+      _prefs.setString(PreferenceKeys.iconStyle, settings.iconStyle.key),
       _prefs.setDouble(PreferenceKeys.panelOpacity, settings.panelOpacity),
       _prefs.setInt(PreferenceKeys.accentColor, settings.accent.index),
       _prefs.setString(
@@ -66,7 +69,7 @@ class SettingsRepository {
       _prefs.setBool(PreferenceKeys.showClock, value: settings.showClock),
       _prefs.setBool(PreferenceKeys.showDate, value: settings.showDate),
       _prefs.setBool(PreferenceKeys.showAlphabetIndex, value: settings.showAlphabetIndex),
-      _prefs.setBool(PreferenceKeys.animations, value: settings.animations),
+      _prefs.setString(PreferenceKeys.animationStyle, settings.animations.key),
       _prefs.setBool(PreferenceKeys.use24HourClock, value: settings.use24HourClock),
       _prefs.setBool(PreferenceKeys.showSystemApps, value: settings.showSystemApps),
       _prefs.setBool(PreferenceKeys.searchPackageNames, value: settings.searchPackageNames),

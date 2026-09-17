@@ -55,18 +55,26 @@ class AppTile extends ConsumerWidget {
         ? 4
         : ref.watch(settingsProvider.select((s) => s.itemSpacing));
 
+    final bool centred = textAlign == TextAlign.center;
+
     final Widget content = Padding(
       padding: EdgeInsets.symmetric(
         horizontal: LauncherMetrics.horizontalPadding,
         vertical: 8 + spacing,
       ),
+      // Ao centro, o ícone e o nome têm de andar juntos: com um Expanded o
+      // texto centrava-se na linha toda e o ícone ficava encostado à margem,
+      // longe dele.
       child: Row(
+        mainAxisAlignment:
+            centred ? MainAxisAlignment.center : MainAxisAlignment.start,
         children: <Widget>[
           if (showIcons) ...<Widget>[
-            AppIcon(packageName: app.packageName),
+            AppIcon(app: app),
             const SizedBox(width: 14),
           ],
-          Expanded(
+          Flexible(
+            fit: centred ? FlexFit.loose : FlexFit.tight,
             child: Text(
               app.name,
               maxLines: 1,

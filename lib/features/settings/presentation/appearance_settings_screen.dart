@@ -109,18 +109,53 @@ class AppearanceSettingsScreen extends ConsumerWidget {
               subtitle: const Text('A coluna A-Z à direita da Home'),
               onChanged: (bool value) => controller.setShowAlphabetIndex(value: value),
             ),
-            SwitchListTile(
-              value: settings.showIcons,
-              title: const Text('Mostrar ícones das aplicações'),
-              subtitle: const Text('Desligado, a lista fica só com texto'),
-              onChanged: (bool value) => controller.setShowIcons(value: value),
+
+            const SettingsSectionTitle('Ícones'),
+            RadioGroup<IconStyle>(
+              groupValue: settings.iconStyle,
+              onChanged: (IconStyle? value) {
+                if (value != null) controller.setIconStyle(value);
+              },
+              child: const Column(
+                children: <Widget>[
+                  RadioListTile<IconStyle>(
+                    value: IconStyle.symbols,
+                    title: Text('Símbolos'),
+                    subtitle: Text(
+                      'Ícones neutros e iguais entre si. O Lume adivinha o de '
+                      'cada aplicação; mantenha uma premida para escolher outro.',
+                    ),
+                  ),
+                  RadioListTile<IconStyle>(
+                    value: IconStyle.appIcons,
+                    title: Text('Ícones originais'),
+                    subtitle: Text('Os das próprias aplicações'),
+                  ),
+                  RadioListTile<IconStyle>(
+                    value: IconStyle.none,
+                    title: Text('Sem ícones'),
+                    subtitle: Text('Só texto'),
+                  ),
+                ],
+              ),
             ),
 
-            SwitchListTile(
-              value: settings.animations,
-              title: const Text('Animações'),
-              subtitle: const Text('Desligar torna a navegação instantânea'),
-              onChanged: (bool value) => controller.setAnimations(value: value),
+            const SettingsSectionTitle('Animações'),
+            RadioGroup<MotionStyle>(
+              groupValue: settings.animations,
+              onChanged: (MotionStyle? value) {
+                if (value != null) controller.setAnimations(value);
+              },
+              child: Column(
+                children: <Widget>[
+                  for (final MotionStyle style in MotionStyle.values)
+                    RadioListTile<MotionStyle>(
+                      value: style,
+                      title: Text(style.label),
+                      subtitle: Text(_motionHint(style)),
+                    ),
+                ],
+              ),
             ),
 
             const SettingsSectionTitle('Painéis'),
@@ -162,6 +197,14 @@ class AppearanceSettingsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  static String _motionHint(MotionStyle style) => switch (style) {
+        MotionStyle.none => 'Tudo instantâneo',
+        MotionStyle.crisp => 'Rápida e direta',
+        MotionStyle.subtle => 'O equilíbrio de origem',
+        MotionStyle.smooth => 'Mais demorada e macia',
+        MotionStyle.bouncy => 'Passa do destino e volta',
+      };
 
   static String _themeLabel(ThemePreference preference) => switch (preference) {
         ThemePreference.light => 'Claro',

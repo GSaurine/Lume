@@ -1,5 +1,29 @@
 # Registo de alterações
 
+## Por publicar
+
+### Adicionado
+
+- **Ícones no ecrã inicial.** Passam a ser o estado de origem, na forma de
+  símbolos neutros — não logótipos de marcas. O Lume adivinha o de cada
+  aplicação em duas camadas: uma tabela das aplicações que quase toda a gente
+  tem (Spotify, YouTube, Instagram, LinkedIn, WhatsApp e mais uma centena), e
+  palavras-chave no nome e no package para o resto.
+- **Escolher o ícone de uma aplicação.** Manter premido → "Escolher ícone", e
+  uma grelha de sessenta símbolos agrupados por tema. Resolve o que a tabela
+  nunca poderia cobrir: há milhares de bancos, de lojas e de aplicações locais.
+  A escolha ganha sempre ao palpite automático.
+- **Três estilos de ícone** em Definições → Aparência: símbolos, ícones
+  originais das aplicações, ou nenhum.
+- **Cinco estilos de animação** — nenhuma, seca, discreta, suave e elástica.
+  Cada um muda a duração *e* a curva do movimento, que é o que faz uma
+  transição parecer seca ou macia.
+
+### Corrigido
+
+- Com o conteúdo ao centro, o ícone ficava encostado à margem esquerda
+  enquanto o nome centrava. Passam a andar juntos.
+
 ## v0.1.2
 
 ### Adicionado

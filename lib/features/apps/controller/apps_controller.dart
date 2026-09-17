@@ -5,7 +5,9 @@ import 'dart:ui' show Rect;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/launcher_constants.dart';
+import '../../../core/constants/launcher_symbols.dart';
 import '../../../core/providers/core_providers.dart';
+import '../../../core/utils/symbol_guesser.dart';
 import '../../../data/models/installed_app.dart';
 import '../../settings/controller/settings_controller.dart';
 
@@ -83,7 +85,7 @@ final NotifierProvider<HiddenAppsNotifier, Set<String>> hiddenAppsProvider =
 /// Nomes dados pelo utilizador, por package name.
 class AppLabelsNotifier extends Notifier<Map<String, String>> {
   @override
-  Map<String, String> build() => ref.watch(appLabelsRepositoryProvider).labels();
+  Map<String, String> build() => ref.watch(appLabelsRepositoryProvider).read();
 
   String? labelFor(String packageName) => state[packageName];
 
@@ -106,6 +108,43 @@ class AppLabelsNotifier extends Notifier<Map<String, String>> {
 
 final NotifierProvider<AppLabelsNotifier, Map<String, String>> appLabelsProvider =
     NotifierProvider<AppLabelsNotifier, Map<String, String>>(AppLabelsNotifier.new);
+
+/// Símbolos que o utilizador escolheu, por package name.
+class AppSymbolsNotifier extends Notifier<Map<String, String>> {
+  @override
+  Map<String, String> build() => ref.watch(appSymbolsRepositoryProvider).read();
+
+  Future<void> assign(String packageName, LauncherSymbol? symbol) async {
+    final Map<String, String> next = Map<String, String>.of(state);
+    if (symbol == null) {
+      next.remove(packageName);
+    } else {
+      next[packageName] = symbol.key;
+    }
+    state = await ref.read(appSymbolsRepositoryProvider).save(next);
+  }
+
+  Future<void> resetAll() async {
+    state = await ref.read(appSymbolsRepositoryProvider).save(const <String, String>{});
+  }
+}
+
+final NotifierProvider<AppSymbolsNotifier, Map<String, String>> appSymbolsProvider =
+    NotifierProvider<AppSymbolsNotifier, Map<String, String>>(AppSymbolsNotifier.new);
+
+/// O símbolo a mostrar para uma aplicação, já com as três camadas resolvidas:
+/// escolha do utilizador, palpite automático, e um círculo neutro se nada
+/// bater certo.
+final appSymbolProvider = Provider.family<LauncherSymbol, InstalledApp>(
+  (Ref ref, InstalledApp app) {
+    final String? chosen = ref.watch(
+      appSymbolsProvider.select((Map<String, String> m) => m[app.packageName]),
+    );
+    return LauncherSymbol.tryParse(chosen) ??
+        SymbolGuesser.guess(name: app.name, packageName: app.packageName) ??
+        LauncherSymbol.circle;
+  },
+);
 
 /// A lista que a UI mostra: sem apps ocultas, opcionalmente sem apps do
 /// sistema, e já com os nomes que o utilizador escolheu.

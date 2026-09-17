@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/launcher_constants.dart';
+import '../../../core/constants/launcher_symbols.dart';
 import '../../../core/theme/launcher_palette.dart';
 import '../../../data/models/installed_app.dart';
 import '../../favorites/controller/favorites_controller.dart';
@@ -89,6 +90,15 @@ class _AppContextMenu extends ConsumerWidget {
               final NavigatorState navigator = Navigator.of(context);
               await showRenameAppDialog(context, app);
               if (navigator.mounted) navigator.pop();
+            },
+          ),
+          ListTile(
+            leading: Icon(ref.watch(appSymbolProvider(app)).icon),
+            title: const Text('Escolher ícone'),
+            onTap: () async {
+              final NavigatorState navigator = Navigator.of(context);
+              navigator.pop();
+              await showSymbolPicker(context, app);
             },
           ),
           ListTile(
@@ -204,5 +214,165 @@ class _RenameAppDialogState extends ConsumerState<_RenameAppDialog> {
     final NavigatorState navigator = Navigator.of(context);
     await ref.read(appLabelsProvider.notifier).reset(widget.app.packageName);
     if (navigator.mounted) navigator.pop();
+  }
+}
+
+/// Seletor de símbolo para uma aplicação.
+///
+/// Existe porque a tabela automática nunca vai cobrir tudo: há milhares de
+/// bancos, de lojas e de aplicações locais, e não faz sentido listá-los. O
+/// palpite acerta na maioria; isto resolve o resto.
+Future<void> showSymbolPicker(BuildContext context, InstalledApp app) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (BuildContext sheetContext) => _SymbolPicker(app: app),
+  );
+}
+
+class _SymbolPicker extends ConsumerWidget {
+  const _SymbolPicker({required this.app});
+
+  final InstalledApp app;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final LauncherPalette palette = context.palette;
+    final LauncherSymbol current = ref.watch(appSymbolProvider(app));
+    final bool isCustom = ref.watch(
+      appSymbolsProvider.select((Map<String, String> m) => m.containsKey(app.packageName)),
+    );
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.75,
+      maxChildSize: 0.95,
+      builder: (BuildContext context, ScrollController controller) {
+        return Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 4, 12, 8),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          'Ícone de ${app.name}',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        Text(
+                          isCustom
+                              ? 'Escolhido por si'
+                              : 'Sugerido automaticamente',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: palette.tertiaryText,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isCustom)
+                    TextButton(
+                      onPressed: () async {
+                        final NavigatorState navigator = Navigator.of(context);
+                        await ref
+                            .read(appSymbolsProvider.notifier)
+                            .assign(app.packageName, null);
+                        if (navigator.mounted) navigator.pop();
+                      },
+                      child: const Text('Automático'),
+                    ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                controller: controller,
+                padding: const EdgeInsets.only(bottom: 24),
+                children: <Widget>[
+                  for (final SymbolGroup group in SymbolGroup.values) ...<Widget>[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                      child: Text(
+                        group.label.toUpperCase(),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: palette.accent,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                            ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Wrap(
+                        children: <Widget>[
+                          for (final LauncherSymbol symbol in group.symbols)
+                            _SymbolChoice(
+                              symbol: symbol,
+                              selected: symbol == current,
+                              onTap: () async {
+                                final NavigatorState navigator = Navigator.of(context);
+                                await ref
+                                    .read(appSymbolsProvider.notifier)
+                                    .assign(app.packageName, symbol);
+                                if (navigator.mounted) navigator.pop();
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SymbolChoice extends StatelessWidget {
+  const _SymbolChoice({
+    required this.symbol,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final LauncherSymbol symbol;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final LauncherPalette palette = context.palette;
+
+    return Tooltip(
+      message: symbol.label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          width: LauncherMetrics.symbolPickerTile,
+          height: LauncherMetrics.symbolPickerTile,
+          margin: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? palette.accent : palette.panelBorder,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Icon(
+            symbol.icon,
+            size: 26,
+            color: selected ? palette.accent : palette.secondaryText,
+          ),
+        ),
+      ),
+    );
   }
 }

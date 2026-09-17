@@ -36,7 +36,7 @@ class FavoritesScreen extends ConsumerWidget {
             onPressed: () => Navigator.of(context).push(
               LauncherRoute.fromBottom<void>(
                 const _AddFavoriteScreen(),
-                animate: ref.read(settingsProvider).animations,
+                style: ref.read(settingsProvider).animations,
               ),
             ),
           ),
@@ -77,7 +77,7 @@ class FavoritesScreen extends ConsumerWidget {
                               .read(favoritePackagesProvider.notifier)
                               .remove(app.packageName),
                           child: ListTile(
-                            leading: AppIcon(packageName: app.packageName),
+                            leading: AppIcon(app: app),
                             title: Text(app.name),
                             subtitle: index >= limit
                                 ? Text(
@@ -204,7 +204,7 @@ class _AddFavoriteScreenState extends ConsumerState<_AddFavoriteScreen> {
                   return CheckboxListTile(
                     value: isFavorite,
                     title: Text(app.name),
-                    secondary: AppIcon(packageName: app.packageName),
+                    secondary: AppIcon(app: app),
                     onChanged: (_) => ref
                         .read(favoritePackagesProvider.notifier)
                         .toggle(app.packageName),

@@ -198,17 +198,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _open(LauncherDestination destination) async {
     _closeLetterPanel();
-    final bool animate = ref.read(settingsProvider).animations;
+    final MotionStyle style = ref.read(settingsProvider).animations;
 
     final Route<void> route = switch (destination) {
       LauncherDestination.search =>
-        LauncherRoute.fromBottom<void>(const SearchScreen(), animate: animate),
+        LauncherRoute.fromBottom<void>(const SearchScreen(), style: style),
       LauncherDestination.appList =>
-        LauncherRoute.fromRight<void>(const AppListScreen(), animate: animate),
+        LauncherRoute.fromRight<void>(const AppListScreen(), style: style),
       LauncherDestination.favorites =>
-        LauncherRoute.fromRight<void>(const FavoritesScreen(), animate: animate),
+        LauncherRoute.fromRight<void>(const FavoritesScreen(), style: style),
       LauncherDestination.settings =>
-        LauncherRoute.fromBottom<void>(const SettingsScreen(), animate: animate),
+        LauncherRoute.fromBottom<void>(const SettingsScreen(), style: style),
     };
 
     await Navigator.of(context).push(route);
@@ -285,7 +285,7 @@ class _GestureLayerState extends State<_GestureLayer> {
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 Navigator.of(context).push(
-                  LauncherRoute.fromBottom<void>(const SettingsScreen(), animate: true),
+                  LauncherRoute.fromBottom<void>(const SettingsScreen(), style: MotionStyle.subtle),
                 );
               },
             ),
@@ -295,7 +295,7 @@ class _GestureLayerState extends State<_GestureLayer> {
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 Navigator.of(context).push(
-                  LauncherRoute.fromRight<void>(const FavoritesScreen(), animate: true),
+                  LauncherRoute.fromRight<void>(const FavoritesScreen(), style: MotionStyle.subtle),
                 );
               },
             ),
@@ -305,7 +305,7 @@ class _GestureLayerState extends State<_GestureLayer> {
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 Navigator.of(context).push(
-                  LauncherRoute.fromRight<void>(const AppListScreen(), animate: true),
+                  LauncherRoute.fromRight<void>(const AppListScreen(), style: MotionStyle.subtle),
                 );
               },
             ),

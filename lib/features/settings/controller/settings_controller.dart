@@ -25,7 +25,7 @@ class SettingsNotifier extends Notifier<LauncherSettings> {
 
   void setItemSpacing(double value) => _update(state.copyWith(itemSpacing: value));
 
-  void setShowIcons({required bool value}) => _update(state.copyWith(showIcons: value));
+  void setIconStyle(IconStyle value) => _update(state.copyWith(iconStyle: value));
 
   void setPanelOpacity(double value) => _update(state.copyWith(panelOpacity: value));
 
@@ -41,7 +41,7 @@ class SettingsNotifier extends Notifier<LauncherSettings> {
   void setShowAlphabetIndex({required bool value}) =>
       _update(state.copyWith(showAlphabetIndex: value));
 
-  void setAnimations({required bool value}) => _update(state.copyWith(animations: value));
+  void setAnimations(MotionStyle value) => _update(state.copyWith(animations: value));
 
   void setUse24HourClock({required bool value}) =>
       _update(state.copyWith(use24HourClock: value));

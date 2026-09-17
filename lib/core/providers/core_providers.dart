@@ -1,11 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/repositories/app_labels_repository.dart';
 import '../../data/repositories/app_repository.dart';
 import '../../data/repositories/favorites_repository.dart';
+import '../../data/repositories/package_map_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/services/platform_launcher_service.dart';
 import '../../data/services/preferences_service.dart';
+import '../constants/launcher_constants.dart';
+
 
 /// Preferências já carregadas.
 ///
@@ -27,9 +29,22 @@ final Provider<AppRepository> appRepositoryProvider = Provider<AppRepository>(
   (Ref ref) => AppRepository(ref.watch(platformLauncherServiceProvider)),
 );
 
-final Provider<AppLabelsRepository> appLabelsRepositoryProvider =
-    Provider<AppLabelsRepository>(
-  (Ref ref) => AppLabelsRepository(ref.watch(preferencesServiceProvider)),
+/// Nomes que o utilizador deu às aplicações.
+final Provider<PackageMapRepository> appLabelsRepositoryProvider =
+    Provider<PackageMapRepository>(
+  (Ref ref) => PackageMapRepository(
+    ref.watch(preferencesServiceProvider),
+    PreferenceKeys.appLabels,
+  ),
+);
+
+/// Símbolos que o utilizador escolheu para as aplicações.
+final Provider<PackageMapRepository> appSymbolsRepositoryProvider =
+    Provider<PackageMapRepository>(
+  (Ref ref) => PackageMapRepository(
+    ref.watch(preferencesServiceProvider),
+    PreferenceKeys.appSymbols,
+  ),
 );
 
 final Provider<FavoritesRepository> favoritesRepositoryProvider =

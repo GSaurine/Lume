@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart'
-    show CrossAxisAlignment, TextAlign, ThemeMode;
+    show CrossAxisAlignment, Curve, Curves, TextAlign, ThemeMode;
 
 import '../../core/constants/launcher_constants.dart';
 
@@ -49,6 +49,64 @@ enum GestureAction {
       if (action.key == key) return action;
     }
     return fallback;
+  }
+}
+
+/// O que mostrar à esquerda do nome de cada aplicação.
+enum IconStyle {
+  /// Só texto. É a identidade visual do launcher (plano, secção 2).
+  none('none', 'Sem ícones'),
+
+  /// Símbolos do Lume: neutros e coerentes entre si.
+  symbols('symbols', 'Símbolos'),
+
+  /// Os ícones reais das aplicações, tal como o Android os fornece.
+  appIcons('app_icons', 'Ícones originais');
+
+  const IconStyle(this.key, this.label);
+
+  final String key;
+  final String label;
+
+  static IconStyle parse(String? key, {IconStyle fallback = IconStyle.none}) {
+    for (final IconStyle value in IconStyle.values) {
+      if (value.key == key) return value;
+    }
+    return fallback;
+  }
+}
+
+/// O carácter das animações.
+///
+/// Chama-se MotionStyle e não AnimationStyle porque o Flutter já tem uma
+/// classe com esse nome em `material.dart`.
+///
+/// Não é só ligar/desligar: quem faz um tema para o telemóvel quer que o
+/// launcher acompanhe. Cada opção muda a duração **e** a curva, que é o que
+/// define se um movimento parece seco, suave ou brincalhão.
+enum MotionStyle {
+  none('none', 'Nenhuma', 0, Curves.linear),
+  crisp('crisp', 'Seca', 0.7, Curves.easeOutCubic),
+  subtle('subtle', 'Discreta', 1, Curves.easeOutCubic),
+  smooth('smooth', 'Suave', 1.6, Curves.easeInOutCubicEmphasized),
+  bouncy('bouncy', 'Elástica', 1.9, Curves.easeOutBack);
+
+  const MotionStyle(this.key, this.label, this.scale, this.curve);
+
+  final String key;
+  final String label;
+
+  /// Multiplicador aplicado às durações base.
+  final double scale;
+  final Curve curve;
+
+  bool get isInstant => scale == 0;
+
+  static MotionStyle parse(String? key) {
+    for (final MotionStyle value in MotionStyle.values) {
+      if (value.key == key) return value;
+    }
+    return MotionStyle.subtle;
   }
 }
 
@@ -138,14 +196,14 @@ class LauncherSettings {
     this.theme = ThemePreference.system,
     this.fontScale = 1,
     this.itemSpacing = 6,
-    this.showIcons = false,
+    this.iconStyle = IconStyle.symbols,
     this.panelOpacity = 1,
     this.accent = AccentColor.blue,
     this.contentAlignment = ContentAlignment.start,
     this.showClock = true,
     this.showDate = true,
     this.showAlphabetIndex = true,
-    this.animations = true,
+    this.animations = MotionStyle.subtle,
     this.use24HourClock = true,
     this.showSystemApps = true,
     this.searchPackageNames = false,
@@ -170,9 +228,13 @@ class LauncherSettings {
   final double fontScale;
   final double itemSpacing;
 
-  /// Ícones desligados por omissão: a lista só com texto é a identidade
-  /// visual do launcher (plano, secção 2).
-  final bool showIcons;
+  /// Símbolos por omissão: dão coerência visual ao ecrã inicial sem o
+  /// transformar numa manta de logótipos, e foram pedidos pelo primeiro
+  /// utilizador de fora.
+  final IconStyle iconStyle;
+
+  /// Atalho para quem só quer saber se há alguma coisa antes do nome.
+  bool get showIcons => iconStyle != IconStyle.none;
 
   /// Opacidade dos painéis de ecrã inteiro. Opacos por omissão: o primeiro
   /// utilizador a experimentar o Lume queixou-se de o wallpaper atrapalhar a
@@ -188,7 +250,7 @@ class LauncherSettings {
   final bool showClock;
   final bool showDate;
   final bool showAlphabetIndex;
-  final bool animations;
+  final MotionStyle animations;
   final bool use24HourClock;
   final bool showSystemApps;
   final bool searchPackageNames;
@@ -202,21 +264,26 @@ class LauncherSettings {
   GestureAction actionFor(LauncherGesture gesture) =>
       gestures[gesture] ?? defaultGestures[gesture] ?? GestureAction.none;
 
-  /// Duração efetiva de uma animação: zero quando o utilizador as desliga.
-  Duration duration(Duration value) => animations ? value : Duration.zero;
+  /// Duração efetiva de uma animação, já com o estilo escolhido aplicado.
+  Duration duration(Duration base) => animations.isInstant
+      ? Duration.zero
+      : Duration(microseconds: (base.inMicroseconds * animations.scale).round());
+
+  /// Curva a usar nas transições.
+  Curve get curve => animations.curve;
 
   LauncherSettings copyWith({
     ThemePreference? theme,
     double? fontScale,
     double? itemSpacing,
-    bool? showIcons,
+    IconStyle? iconStyle,
     double? panelOpacity,
     AccentColor? accent,
     ContentAlignment? contentAlignment,
     bool? showClock,
     bool? showDate,
     bool? showAlphabetIndex,
-    bool? animations,
+    MotionStyle? animations,
     bool? use24HourClock,
     bool? showSystemApps,
     bool? searchPackageNames,
@@ -231,7 +298,7 @@ class LauncherSettings {
           .clamp(LauncherMetrics.minFontScale, LauncherMetrics.maxFontScale),
       itemSpacing: (itemSpacing ?? this.itemSpacing)
           .clamp(LauncherMetrics.minItemSpacing, LauncherMetrics.maxItemSpacing),
-      showIcons: showIcons ?? this.showIcons,
+      iconStyle: iconStyle ?? this.iconStyle,
       panelOpacity: (panelOpacity ?? this.panelOpacity)
           .clamp(LauncherMetrics.minPanelOpacity, LauncherMetrics.maxPanelOpacity),
       accent: accent ?? this.accent,
@@ -258,7 +325,7 @@ class LauncherSettings {
           other.theme == theme &&
           other.fontScale == fontScale &&
           other.itemSpacing == itemSpacing &&
-          other.showIcons == showIcons &&
+          other.iconStyle == iconStyle &&
           other.panelOpacity == panelOpacity &&
           other.accent == accent &&
           other.contentAlignment == contentAlignment &&
@@ -279,7 +346,7 @@ class LauncherSettings {
         theme,
         fontScale,
         itemSpacing,
-        showIcons,
+        iconStyle,
         panelOpacity,
         accent,
         contentAlignment,
