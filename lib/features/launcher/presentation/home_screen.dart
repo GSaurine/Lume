@@ -78,7 +78,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       // absorviam os deslizes começados por cima deles.
                       child: IgnorePointer(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: settings.contentAlignment.crossAxis,
                           children: <Widget>[
                             if (settings.showClock) const ClockWidget(),
                             if (settings.showDate) ...<Widget>[

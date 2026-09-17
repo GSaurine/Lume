@@ -80,8 +80,35 @@ class HiddenAppsNotifier extends Notifier<Set<String>> {
 final NotifierProvider<HiddenAppsNotifier, Set<String>> hiddenAppsProvider =
     NotifierProvider<HiddenAppsNotifier, Set<String>>(HiddenAppsNotifier.new);
 
-/// A lista que a UI mostra: sem apps ocultas e, opcionalmente, sem apps
-/// do sistema.
+/// Nomes dados pelo utilizador, por package name.
+class AppLabelsNotifier extends Notifier<Map<String, String>> {
+  @override
+  Map<String, String> build() => ref.watch(appLabelsRepositoryProvider).labels();
+
+  String? labelFor(String packageName) => state[packageName];
+
+  Future<void> rename(String packageName, String newName) async {
+    final Map<String, String> next = Map<String, String>.of(state);
+    if (newName.trim().isEmpty) {
+      next.remove(packageName);
+    } else {
+      next[packageName] = newName.trim();
+    }
+    state = await ref.read(appLabelsRepositoryProvider).save(next);
+  }
+
+  Future<void> reset(String packageName) => rename(packageName, '');
+
+  Future<void> resetAll() async {
+    state = await ref.read(appLabelsRepositoryProvider).save(const <String, String>{});
+  }
+}
+
+final NotifierProvider<AppLabelsNotifier, Map<String, String>> appLabelsProvider =
+    NotifierProvider<AppLabelsNotifier, Map<String, String>>(AppLabelsNotifier.new);
+
+/// A lista que a UI mostra: sem apps ocultas, opcionalmente sem apps do
+/// sistema, e já com os nomes que o utilizador escolheu.
 final Provider<List<InstalledApp>> visibleAppsProvider = Provider<List<InstalledApp>>(
   (Ref ref) {
     final List<InstalledApp> apps =
@@ -91,10 +118,24 @@ final Provider<List<InstalledApp>> visibleAppsProvider = Provider<List<Installed
       settingsProvider.select((settings) => settings.showSystemApps),
     );
 
-    return apps
+    final Map<String, String> labels = ref.watch(appLabelsProvider);
+
+    final List<InstalledApp> visible = apps
         .where((InstalledApp app) => !hidden.contains(app.packageName))
         .where((InstalledApp app) => showSystemApps || !app.isSystemApp)
-        .toList(growable: false);
+        .map((InstalledApp app) {
+          final String? custom = labels[app.packageName];
+          return custom == null ? app : app.withName(custom);
+        })
+        .toList();
+
+    // Renomear muda a ordem alfabética e a letra do índice, por isso a lista
+    // volta a ser ordenada aqui e não no repositório.
+    if (labels.isNotEmpty) {
+      visible.sort((InstalledApp a, InstalledApp b) =>
+          a.foldedName.compareTo(b.foldedName));
+    }
+    return List<InstalledApp>.unmodifiable(visible);
   },
 );
 

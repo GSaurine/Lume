@@ -30,6 +30,9 @@ class _AppContextMenu extends ConsumerWidget {
     final bool isHidden = ref.watch(
       hiddenAppsProvider.select((Set<String> h) => h.contains(app.packageName)),
     );
+    final bool isRenamed = ref.watch(
+      appLabelsProvider.select((Map<String, String> l) => l.containsKey(app.packageName)),
+    );
 
     return SafeArea(
       child: Column(
@@ -77,6 +80,18 @@ class _AppContextMenu extends ConsumerWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.drive_file_rename_outline_rounded),
+            title: Text(isRenamed ? 'Mudar o nome' : 'Dar outro nome'),
+            // Sem legenda com o nome original: neste ponto `app.name` já é o
+            // nome personalizado, porque a substituição acontece na lista.
+            subtitle: isRenamed ? const Text('Nome personalizado') : null,
+            onTap: () async {
+              final NavigatorState navigator = Navigator.of(context);
+              await showRenameAppDialog(context, app);
+              if (navigator.mounted) navigator.pop();
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.info_outline_rounded),
             title: const Text('Informações da aplicação'),
             onTap: () async {
@@ -100,5 +115,94 @@ class _AppContextMenu extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+/// Diálogo para dar outro nome a uma aplicação.
+///
+/// Guardamos o nome contra o package name, por isso sobrevive a mudanças de
+/// idioma e a atualizações da aplicação. Deixar o campo vazio repõe o nome
+/// que o Android reporta.
+Future<void> showRenameAppDialog(BuildContext context, InstalledApp app) {
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext dialogContext) => _RenameAppDialog(app: app),
+  );
+}
+
+class _RenameAppDialog extends ConsumerStatefulWidget {
+  const _RenameAppDialog({required this.app});
+
+  final InstalledApp app;
+
+  @override
+  ConsumerState<_RenameAppDialog> createState() => _RenameAppDialogState();
+}
+
+class _RenameAppDialogState extends ConsumerState<_RenameAppDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.app.name,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isRenamed = ref
+        .watch(appLabelsProvider)
+        .containsKey(widget.app.packageName);
+
+    return AlertDialog(
+      title: const Text('Dar outro nome'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            textCapitalization: TextCapitalization.sentences,
+            style: Theme.of(context).textTheme.bodyLarge,
+            decoration: const InputDecoration(hintText: 'Nome'),
+            onSubmitted: (_) => _save(),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Muda também a posição na lista e na pesquisa.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        if (isRenamed)
+          TextButton(
+            onPressed: _reset,
+            child: const Text('Repor original'),
+          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        TextButton(onPressed: _save, child: const Text('Guardar')),
+      ],
+    );
+  }
+
+  Future<void> _save() async {
+    final NavigatorState navigator = Navigator.of(context);
+    await ref
+        .read(appLabelsProvider.notifier)
+        .rename(widget.app.packageName, _controller.text);
+    if (navigator.mounted) navigator.pop();
+  }
+
+  Future<void> _reset() async {
+    final NavigatorState navigator = Navigator.of(context);
+    await ref.read(appLabelsProvider.notifier).reset(widget.app.packageName);
+    if (navigator.mounted) navigator.pop();
   }
 }

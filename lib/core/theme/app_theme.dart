@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/launcher_settings.dart';
 import 'launcher_palette.dart';
 
 /// FASE 9 — temas claro e escuro.
@@ -7,23 +8,45 @@ import 'launcher_palette.dart';
 /// Material 3 como base, mas sem a sua "cor de superfície": a Home é
 /// transparente e mostra o wallpaper (plano, secção 18).
 abstract final class AppTheme {
-  static ThemeData light({required double fontScale, required double panelOpacity}) =>
-      _build(Brightness.light, LauncherPalette.light, fontScale, panelOpacity);
+  static ThemeData light({
+    required double fontScale,
+    required double panelOpacity,
+    required AccentColor accent,
+  }) =>
+      _build(
+        Brightness.light,
+        LauncherPalette.light,
+        fontScale,
+        panelOpacity,
+        Color(accent.lightValue),
+      );
 
-  static ThemeData dark({required double fontScale, required double panelOpacity}) =>
-      _build(Brightness.dark, LauncherPalette.dark, fontScale, panelOpacity);
+  static ThemeData dark({
+    required double fontScale,
+    required double panelOpacity,
+    required AccentColor accent,
+  }) =>
+      _build(
+        Brightness.dark,
+        LauncherPalette.dark,
+        fontScale,
+        panelOpacity,
+        Color(accent.darkValue),
+      );
 
   static ThemeData _build(
     Brightness brightness,
     LauncherPalette basePalette,
     double fontScale,
     double panelOpacity,
+    Color accent,
   ) {
     // A transparência dos painéis vive só aqui. Assim tudo o que use
     // `context.palette.panel` — pesquisa, lista, definições, folhas — segue a
     // definição sem ter de a ler por conta própria.
     final LauncherPalette palette = basePalette.copyWith(
       panel: basePalette.panel.withValues(alpha: panelOpacity),
+      accent: accent,
     );
     final ColorScheme scheme = ColorScheme.fromSeed(
       seedColor: palette.accent,

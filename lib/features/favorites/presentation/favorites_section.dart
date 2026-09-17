@@ -33,6 +33,9 @@ class FavoritesSection extends ConsumerWidget {
             app: app,
             key: ValueKey<String>('favorite-${app.id}'),
             overWallpaper: true,
+            textAlign: ref
+                .watch(settingsProvider.select((s) => s.contentAlignment))
+                .textAlign,
             textStyle:
                 Theme.of(context).textTheme.headlineSmall.onWallpaper(context),
           ),

@@ -106,6 +106,8 @@ class AppManager(
 
                 "openSystemSettings" -> result.success(gestures.openSystemSettings())
 
+                "openWallpaperPicker" -> result.success(openWallpaperPicker())
+
                 "lockScreen" -> result.success(LumeAccessibilityService.lockScreen())
 
                 "openRecents" -> result.success(LumeAccessibilityService.openRecents())
@@ -234,6 +236,18 @@ class AppManager(
                 .setComponent(ComponentName(packageName, activityName))
         }
         return context.packageManager.getLaunchIntentForPackage(packageName)
+    }
+
+    /**
+     * Abre o seletor de wallpaper do sistema.
+     *
+     * Um launcher não deve pintar o seu próprio wallpaper: o Android já tem
+     * um seletor, que respeita o que o fabricante acrescentou (ecrã de
+     * bloqueio, wallpapers animados). Só o abrimos.
+     */
+    private fun openWallpaperPicker(): Boolean {
+        val intent = Intent(Intent.ACTION_SET_WALLPAPER)
+        return startSafely(Intent.createChooser(intent, "Mudar wallpaper"))
     }
 
     private fun openAppInfo(packageName: String): Boolean = startSafely(

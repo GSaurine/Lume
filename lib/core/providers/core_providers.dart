@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/repositories/app_labels_repository.dart';
 import '../../data/repositories/app_repository.dart';
 import '../../data/repositories/favorites_repository.dart';
 import '../../data/repositories/settings_repository.dart';
@@ -24,6 +25,11 @@ final Provider<PlatformLauncherService> platformLauncherServiceProvider =
 
 final Provider<AppRepository> appRepositoryProvider = Provider<AppRepository>(
   (Ref ref) => AppRepository(ref.watch(platformLauncherServiceProvider)),
+);
+
+final Provider<AppLabelsRepository> appLabelsRepositoryProvider =
+    Provider<AppLabelsRepository>(
+  (Ref ref) => AppLabelsRepository(ref.watch(preferencesServiceProvider)),
 );
 
 final Provider<FavoritesRepository> favoritesRepositoryProvider =

@@ -16,13 +16,22 @@ class LumeApp extends ConsumerWidget {
     final double fontScale = ref.watch(settingsProvider.select((s) => s.fontScale));
     final double panelOpacity =
         ref.watch(settingsProvider.select((s) => s.panelOpacity));
+    final AccentColor accent = ref.watch(settingsProvider.select((s) => s.accent));
     final ThemePreference theme = ref.watch(settingsProvider.select((s) => s.theme));
 
     return MaterialApp(
       title: 'Lume',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(fontScale: fontScale, panelOpacity: panelOpacity),
-      darkTheme: AppTheme.dark(fontScale: fontScale, panelOpacity: panelOpacity),
+      theme: AppTheme.light(
+        fontScale: fontScale,
+        panelOpacity: panelOpacity,
+        accent: accent,
+      ),
+      darkTheme: AppTheme.dark(
+        fontScale: fontScale,
+        panelOpacity: panelOpacity,
+        accent: accent,
+      ),
       themeMode: theme.themeMode,
       localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
         GlobalMaterialLocalizations.delegate,

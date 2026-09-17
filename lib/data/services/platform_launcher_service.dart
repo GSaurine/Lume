@@ -88,6 +88,9 @@ class PlatformLauncherService {
 
   Future<bool> openSystemSettings() => _invokeBool('openSystemSettings');
 
+  /// Abre o seletor de wallpaper do Android.
+  Future<bool> openWallpaperPicker() => _invokeBool('openWallpaperPicker');
+
   Future<bool> lockScreen() => _invokeBool('lockScreen');
 
   Future<bool> openRecents() => _invokeBool('openRecents');

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show ThemeMode;
+import 'package:flutter/material.dart'
+    show CrossAxisAlignment, TextAlign, ThemeMode;
 
 import '../../core/constants/launcher_constants.dart';
 
@@ -51,6 +52,61 @@ enum GestureAction {
   }
 }
 
+/// Onde encostar o relógio, a data e os favoritos na Home.
+enum ContentAlignment {
+  start('start'),
+  center('center');
+
+  const ContentAlignment(this.key);
+
+  final String key;
+
+  CrossAxisAlignment get crossAxis => switch (this) {
+        ContentAlignment.start => CrossAxisAlignment.start,
+        ContentAlignment.center => CrossAxisAlignment.center,
+      };
+
+  TextAlign get textAlign => switch (this) {
+        ContentAlignment.start => TextAlign.start,
+        ContentAlignment.center => TextAlign.center,
+      };
+
+  static ContentAlignment parse(String? key) {
+    for (final ContentAlignment value in ContentAlignment.values) {
+      if (value.key == key) return value;
+    }
+    return ContentAlignment.start;
+  }
+}
+
+/// Cores de destaque à escolha.
+///
+/// Uma paleta fixa em vez de um seletor livre: metade das cores possíveis não
+/// tem contraste suficiente sobre os painéis, e um launcher minimalista não
+/// ganha nada com um círculo cromático.
+enum AccentColor {
+  blue(0xFF8AB4F8, 0xFF2B6CB0, 'Azul'),
+  teal(0xFF6FD3C7, 0xFF11776C, 'Turquesa'),
+  green(0xFF9BD67F, 0xFF3F7D2B, 'Verde'),
+  amber(0xFFF2C14E, 0xFF8A5A00, 'Âmbar'),
+  coral(0xFFF2998A, 0xFFB0452F, 'Coral'),
+  violet(0xFFC5A3F5, 0xFF6B3FB5, 'Violeta');
+
+  const AccentColor(this.darkValue, this.lightValue, this.label);
+
+  /// Tom claro, para usar sobre painéis escuros.
+  final int darkValue;
+
+  /// Tom escuro, para usar sobre painéis claros.
+  final int lightValue;
+  final String label;
+
+  static AccentColor parse(int? index) =>
+      (index == null || index < 0 || index >= AccentColor.values.length)
+          ? AccentColor.blue
+          : AccentColor.values[index];
+}
+
 /// Preferência de tema escolhida pelo utilizador.
 enum ThemePreference {
   light('light'),
@@ -84,6 +140,8 @@ class LauncherSettings {
     this.itemSpacing = 6,
     this.showIcons = false,
     this.panelOpacity = 1,
+    this.accent = AccentColor.blue,
+    this.contentAlignment = ContentAlignment.start,
     this.showClock = true,
     this.showDate = true,
     this.showAlphabetIndex = true,
@@ -120,6 +178,13 @@ class LauncherSettings {
   /// utilizador a experimentar o Lume queixou-se de o wallpaper atrapalhar a
   /// leitura na pesquisa. Quem gostar do efeito baixa este valor.
   final double panelOpacity;
+
+  /// Cor usada em botões, cabeçalhos de secção e no estado ativo dos
+  /// controlos.
+  final AccentColor accent;
+
+  /// Alinhamento do relógio, da data e dos favoritos.
+  final ContentAlignment contentAlignment;
   final bool showClock;
   final bool showDate;
   final bool showAlphabetIndex;
@@ -146,6 +211,8 @@ class LauncherSettings {
     double? itemSpacing,
     bool? showIcons,
     double? panelOpacity,
+    AccentColor? accent,
+    ContentAlignment? contentAlignment,
     bool? showClock,
     bool? showDate,
     bool? showAlphabetIndex,
@@ -167,6 +234,8 @@ class LauncherSettings {
       showIcons: showIcons ?? this.showIcons,
       panelOpacity: (panelOpacity ?? this.panelOpacity)
           .clamp(LauncherMetrics.minPanelOpacity, LauncherMetrics.maxPanelOpacity),
+      accent: accent ?? this.accent,
+      contentAlignment: contentAlignment ?? this.contentAlignment,
       showClock: showClock ?? this.showClock,
       showDate: showDate ?? this.showDate,
       showAlphabetIndex: showAlphabetIndex ?? this.showAlphabetIndex,
@@ -191,6 +260,8 @@ class LauncherSettings {
           other.itemSpacing == itemSpacing &&
           other.showIcons == showIcons &&
           other.panelOpacity == panelOpacity &&
+          other.accent == accent &&
+          other.contentAlignment == contentAlignment &&
           other.showClock == showClock &&
           other.showDate == showDate &&
           other.showAlphabetIndex == showAlphabetIndex &&
@@ -210,6 +281,8 @@ class LauncherSettings {
         itemSpacing,
         showIcons,
         panelOpacity,
+        accent,
+        contentAlignment,
         showClock,
         showDate,
         showAlphabetIndex,

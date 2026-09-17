@@ -24,6 +24,8 @@ class SystemGestureService {
   Future<bool> openAccessibilitySettings() => _platform.openAccessibilitySettings();
 
   Future<bool> openSystemSettings() => _platform.openSystemSettings();
+
+  Future<bool> openWallpaperPicker() => _platform.openWallpaperPicker();
 }
 
 final Provider<SystemGestureService> systemGestureServiceProvider =

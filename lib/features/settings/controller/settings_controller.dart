@@ -29,6 +29,11 @@ class SettingsNotifier extends Notifier<LauncherSettings> {
 
   void setPanelOpacity(double value) => _update(state.copyWith(panelOpacity: value));
 
+  void setAccent(AccentColor value) => _update(state.copyWith(accent: value));
+
+  void setContentAlignment(ContentAlignment value) =>
+      _update(state.copyWith(contentAlignment: value));
+
   void setShowClock({required bool value}) => _update(state.copyWith(showClock: value));
 
   void setShowDate({required bool value}) => _update(state.copyWith(showDate: value));

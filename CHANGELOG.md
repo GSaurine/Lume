@@ -2,6 +2,22 @@
 
 ## Por publicar
 
+### Adicionado
+
+Personalização, a pedido do primeiro utilizador de fora. Cobre parte da lista
+da secção 15 do plano.
+
+- **Dar outro nome às aplicações.** Manter premido → "Dar outro nome". O nome
+  fica ligado ao *package*, por isso sobrevive a atualizações da aplicação e a
+  mudanças de idioma do telemóvel, e muda também a posição na lista, a letra do
+  índice e a pesquisa. Definições → Aplicações mostra os nomes dados e permite
+  repô-los.
+- **Cor de destaque**, à escolha entre seis. Cada uma tem um tom para o tema
+  claro e outro para o escuro, porque a mesma cor não tem contraste nos dois.
+- **Alinhamento na Home**: relógio, data e favoritos à esquerda ou ao centro.
+- **Mudar wallpaper** a partir de Definições → Aparência, abrindo o seletor do
+  Android.
+
 ### Alterado
 
 - **Os painéis passam a ser opacos por omissão.** O primeiro utilizador a

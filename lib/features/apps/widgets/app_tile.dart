@@ -23,6 +23,7 @@ class AppTile extends ConsumerWidget {
     this.trailing,
     this.onLaunched,
     this.overWallpaper = false,
+    this.textAlign,
     super.key,
   });
 
@@ -42,6 +43,10 @@ class AppTile extends ConsumerWidget {
   /// translúcido — assim o toque continua a funcionar e o arrasto passa.
   /// A ondulação do Material também não assenta bem sobre uma fotografia.
   final bool overWallpaper;
+
+  /// Alinhamento do nome. Só usado na Home, onde o utilizador escolhe se o
+  /// conteúdo fica encostado à esquerda ou ao centro.
+  final TextAlign? textAlign;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,6 +71,7 @@ class AppTile extends ConsumerWidget {
               app.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+              textAlign: textAlign,
               style: textStyle ?? Theme.of(context).textTheme.bodyLarge,
             ),
           ),

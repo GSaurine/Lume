@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/launcher_constants.dart';
 import '../../../core/theme/launcher_palette.dart';
 import '../../../data/models/launcher_settings.dart';
+import '../../gestures/services/system_gesture_service.dart';
 import '../controller/settings_controller.dart';
 import 'settings_screen.dart';
 
@@ -36,6 +37,32 @@ class AppearanceSettingsScreen extends ConsumerWidget {
                       value: option,
                       title: Text(_themeLabel(option)),
                     ),
+                ],
+              ),
+            ),
+
+            const SettingsSectionTitle('Cor de destaque'),
+            _AccentPicker(
+              selected: settings.accent,
+              onChanged: controller.setAccent,
+            ),
+
+            const SettingsSectionTitle('Alinhamento na Home'),
+            RadioGroup<ContentAlignment>(
+              groupValue: settings.contentAlignment,
+              onChanged: (ContentAlignment? value) {
+                if (value != null) controller.setContentAlignment(value);
+              },
+              child: const Column(
+                children: <Widget>[
+                  RadioListTile<ContentAlignment>(
+                    value: ContentAlignment.start,
+                    title: Text('À esquerda'),
+                  ),
+                  RadioListTile<ContentAlignment>(
+                    value: ContentAlignment.center,
+                    title: Text('Ao centro'),
+                  ),
                 ],
               ),
             ),
@@ -118,6 +145,16 @@ class AppearanceSettingsScreen extends ConsumerWidget {
               format: (double v) => '${v.round()}',
               onChanged: (double value) => controller.setFavoritesLimit(value.round()),
             ),
+            const SettingsSectionTitle('Wallpaper'),
+            Consumer(
+              builder: (BuildContext context, WidgetRef ref, _) => ListTile(
+                leading: const Icon(Icons.wallpaper_rounded),
+                title: const Text('Mudar wallpaper'),
+                subtitle: const Text('Abre o seletor do Android'),
+                onTap: () =>
+                    ref.read(systemGestureServiceProvider).openWallpaperPicker(),
+              ),
+            ),
             const SizedBox(height: 32),
           ],
         ),
@@ -130,6 +167,59 @@ class AppearanceSettingsScreen extends ConsumerWidget {
         ThemePreference.dark => 'Escuro',
         ThemePreference.system => 'Seguir o sistema',
       };
+}
+
+/// Uma fila de círculos com as cores disponíveis.
+class _AccentPicker extends StatelessWidget {
+  const _AccentPicker({required this.selected, required this.onChanged});
+
+  final AccentColor selected;
+  final ValueChanged<AccentColor> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 12,
+        children: <Widget>[
+          for (final AccentColor accent in AccentColor.values)
+            Semantics(
+              label: accent.label,
+              selected: accent == selected,
+              button: true,
+              child: Tooltip(
+                message: accent.label,
+                child: InkWell(
+                  onTap: () => onChanged(accent),
+                  customBorder: const CircleBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(isDark ? accent.darkValue : accent.lightValue),
+                        border: Border.all(
+                          color: accent == selected
+                              ? context.palette.primaryText
+                              : Colors.transparent,
+                          width: 2.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SliderTile extends StatelessWidget {

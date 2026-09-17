@@ -14,11 +14,16 @@ abstract final class PreferenceKeys {
   static const String favorites = 'favorites';
   static const String hiddenApps = 'hidden_apps';
 
+  /// Nomes dados pelo utilizador, em JSON: {packageName: nome}.
+  static const String appLabels = 'app_labels';
+
   static const String theme = 'settings.theme';
   static const String fontScale = 'settings.font_scale';
   static const String itemSpacing = 'settings.item_spacing';
   static const String showIcons = 'settings.show_icons';
   static const String panelOpacity = 'settings.panel_opacity';
+  static const String accentColor = 'settings.accent_color';
+  static const String contentAlignment = 'settings.content_alignment';
   static const String showClock = 'settings.show_clock';
   static const String showDate = 'settings.show_date';
   static const String showAlphabetIndex = 'settings.show_alphabet_index';

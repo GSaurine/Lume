@@ -47,6 +47,16 @@ class InstalledApp {
   /// Identidade do item na lista — um package pode ter várias entradas.
   String get id => '$packageName/$activityName';
 
+  /// Usado para aplicar o nome que o utilizador escolheu. Tudo o resto —
+  /// ordenação, letra do índice, pesquisa — deriva de [name], por isso basta
+  /// trocá-lo aqui para o resto seguir.
+  InstalledApp withName(String newName) => InstalledApp(
+        name: newName,
+        packageName: packageName,
+        activityName: activityName,
+        isSystemApp: isSystemApp,
+      );
+
   /// Nome preparado para pesquisa: minúsculas e sem acentos.
   String get foldedName => TextNormalizer.fold(name);
 

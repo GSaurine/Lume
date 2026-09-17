@@ -17,6 +17,7 @@ class AppsSettingsScreen extends ConsumerWidget {
     final bool showSystemApps =
         ref.watch(settingsProvider.select((s) => s.showSystemApps));
     final Set<String> hidden = ref.watch(hiddenAppsProvider);
+    final Map<String, String> labels = ref.watch(appLabelsProvider);
     final List<InstalledApp> allApps =
         ref.watch(installedAppsProvider).value ?? const <InstalledApp>[];
     final List<InstalledApp> hiddenApps = allApps
@@ -56,6 +57,38 @@ class AppsSettingsScreen extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
+            SettingsSectionTitle('Nomes personalizados (${labels.length})'),
+            if (labels.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  'Mantenha um app premido e escolha "Dar outro nome" para o '
+                  'chamar como quiser. O nome fica ligado ao package, por isso '
+                  'sobrevive a atualizações e a mudanças de idioma.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              )
+            else ...<Widget>[
+              for (final MapEntry<String, String> entry in labels.entries)
+                ListTile(
+                  leading: AppIcon(packageName: entry.key),
+                  title: Text(entry.value),
+                  subtitle: Text(entry.key),
+                  trailing: TextButton(
+                    onPressed: () =>
+                        ref.read(appLabelsProvider.notifier).reset(entry.key),
+                    child: const Text('Repor'),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: OutlinedButton(
+                  onPressed: () => ref.read(appLabelsProvider.notifier).resetAll(),
+                  child: const Text('Repor todos os nomes'),
+                ),
+              ),
+            ],
+
             SettingsSectionTitle('Ocultas (${hiddenApps.length})'),
             if (hiddenApps.isEmpty)
               Padding(
