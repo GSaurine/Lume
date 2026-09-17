@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/launcher_constants.dart';
 import '../../../core/constants/launcher_symbols.dart';
 import '../../../core/theme/launcher_palette.dart';
+import '../../../core/utils/text_normalizer.dart';
 import '../../../data/models/installed_app.dart';
 import '../../favorites/controller/favorites_controller.dart';
 import '../controller/apps_controller.dart';
@@ -230,13 +231,37 @@ Future<void> showSymbolPicker(BuildContext context, InstalledApp app) {
   );
 }
 
-class _SymbolPicker extends ConsumerWidget {
+class _SymbolPicker extends ConsumerStatefulWidget {
   const _SymbolPicker({required this.app});
 
   final InstalledApp app;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SymbolPicker> createState() => _SymbolPickerState();
+}
+
+class _SymbolPickerState extends ConsumerState<_SymbolPicker> {
+  String _query = '';
+
+  /// Só os grupos que ainda têm alguma coisa depois do filtro.
+  Map<SymbolGroup, List<LauncherSymbol>> get _matches {
+    final String needle = TextNormalizer.fold(_query);
+    final Map<SymbolGroup, List<LauncherSymbol>> result =
+        <SymbolGroup, List<LauncherSymbol>>{};
+
+    for (final SymbolGroup group in SymbolGroup.values) {
+      final List<LauncherSymbol> found = group.symbols
+          .where((LauncherSymbol s) =>
+              needle.isEmpty || TextNormalizer.fold(s.label).contains(needle))
+          .toList();
+      if (found.isNotEmpty) result[group] = found;
+    }
+    return result;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final InstalledApp app = widget.app;
     final LauncherPalette palette = context.palette;
     final LauncherSymbol current = ref.watch(appSymbolProvider(app));
     final bool isCustom = ref.watch(
@@ -287,17 +312,31 @@ class _SymbolPicker extends ConsumerWidget {
                 ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+              child: TextField(
+                autocorrect: false,
+                style: Theme.of(context).textTheme.bodyLarge,
+                decoration: InputDecoration(
+                  hintText: 'Procurar símbolo',
+                  hintStyle: Theme.of(context).textTheme.bodyMedium,
+                  prefixIcon: Icon(Icons.search_rounded, color: palette.tertiaryText),
+                ),
+                onChanged: (String value) => setState(() => _query = value),
+              ),
+            ),
             const Divider(height: 1),
             Expanded(
               child: ListView(
                 controller: controller,
                 padding: const EdgeInsets.only(bottom: 24),
                 children: <Widget>[
-                  for (final SymbolGroup group in SymbolGroup.values) ...<Widget>[
+                  for (final MapEntry<SymbolGroup, List<LauncherSymbol>> entry
+                      in _matches.entries) ...<Widget>[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                       child: Text(
-                        group.label.toUpperCase(),
+                        entry.key.label.toUpperCase(),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: palette.accent,
                               fontWeight: FontWeight.w700,
@@ -309,7 +348,7 @@ class _SymbolPicker extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Wrap(
                         children: <Widget>[
-                          for (final LauncherSymbol symbol in group.symbols)
+                          for (final LauncherSymbol symbol in entry.value)
                             _SymbolChoice(
                               symbol: symbol,
                               selected: symbol == current,

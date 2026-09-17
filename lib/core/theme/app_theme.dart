@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/launcher_settings.dart';
+import '../constants/launcher_fonts.dart';
+import 'accent_resolver.dart';
 import 'launcher_palette.dart';
 
 /// FASE 9 — temas claro e escuro.
@@ -8,44 +10,24 @@ import 'launcher_palette.dart';
 /// Material 3 como base, mas sem a sua "cor de superfície": a Home é
 /// transparente e mostra o wallpaper (plano, secção 18).
 abstract final class AppTheme {
-  static ThemeData light({
-    required double fontScale,
-    required double panelOpacity,
-    required AccentColor accent,
-  }) =>
-      _build(
-        Brightness.light,
-        LauncherPalette.light,
-        fontScale,
-        panelOpacity,
-        Color(accent.lightValue),
-      );
+  static ThemeData light(LauncherSettings settings) =>
+      _build(Brightness.light, LauncherPalette.light, settings);
 
-  static ThemeData dark({
-    required double fontScale,
-    required double panelOpacity,
-    required AccentColor accent,
-  }) =>
-      _build(
-        Brightness.dark,
-        LauncherPalette.dark,
-        fontScale,
-        panelOpacity,
-        Color(accent.darkValue),
-      );
+  static ThemeData dark(LauncherSettings settings) =>
+      _build(Brightness.dark, LauncherPalette.dark, settings);
 
   static ThemeData _build(
     Brightness brightness,
     LauncherPalette basePalette,
-    double fontScale,
-    double panelOpacity,
-    Color accent,
+    LauncherSettings settings,
   ) {
+    final double fontScale = settings.fontScale;
+    final Color accent = AccentResolver.resolve(settings, brightness);
     // A transparência dos painéis vive só aqui. Assim tudo o que use
     // `context.palette.panel` — pesquisa, lista, definições, folhas — segue a
     // definição sem ter de a ler por conta própria.
     final LauncherPalette palette = basePalette.copyWith(
-      panel: basePalette.panel.withValues(alpha: panelOpacity),
+      panel: basePalette.panel.withValues(alpha: settings.panelOpacity),
       accent: accent,
     );
     final ColorScheme scheme = ColorScheme.fromSeed(
@@ -57,7 +39,7 @@ abstract final class AppTheme {
       error: palette.danger,
     );
 
-    final TextTheme text = _textTheme(palette, fontScale);
+    final TextTheme text = _textTheme(palette, fontScale, settings.font);
 
     return ThemeData(
       useMaterial3: true,
@@ -133,10 +115,19 @@ abstract final class AppTheme {
 
   /// Escala tipográfica própria. Um launcher tem poucos tamanhos: relógio,
   /// nome de app e legenda.
-  static TextTheme _textTheme(LauncherPalette palette, double scale) {
+  static TextTheme _textTheme(
+    LauncherPalette palette,
+    double scale,
+    LauncherFont font,
+  ) {
     double size(double value) => value * scale;
 
-    return TextTheme(
+    // A fonte é aplicada de uma vez em _applyFont, mais abaixo. Com fontes
+    // variáveis não basta o fontWeight: é preciso o eixo `wght`, e há que
+    // respeitar o intervalo de espessuras de cada família.
+    return _applyFont(
+      font,
+      TextTheme(
       // Relógio.
       displayLarge: TextStyle(
         fontSize: size(64),
@@ -196,6 +187,24 @@ abstract final class AppTheme {
         fontWeight: FontWeight.w500,
         color: palette.accent,
       ),
+      ),
+    );
+  }
+
+  /// Passa cada estilo do tema pela fonte escolhida.
+  static TextTheme _applyFont(LauncherFont font, TextTheme theme) {
+    TextStyle? f(TextStyle? style) => style == null ? null : font.apply(style);
+
+    return TextTheme(
+      displayLarge: f(theme.displayLarge),
+      titleMedium: f(theme.titleMedium),
+      titleLarge: f(theme.titleLarge),
+      headlineSmall: f(theme.headlineSmall),
+      bodyLarge: f(theme.bodyLarge),
+      bodyMedium: f(theme.bodyMedium),
+      bodySmall: f(theme.bodySmall),
+      labelSmall: f(theme.labelSmall),
+      labelLarge: f(theme.labelLarge),
     );
   }
 }

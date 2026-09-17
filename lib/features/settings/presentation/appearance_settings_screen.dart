@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/launcher_constants.dart';
+import '../../../core/constants/launcher_fonts.dart';
+import '../../../core/theme/accent_resolver.dart';
 import '../../../core/theme/launcher_palette.dart';
 import '../../../data/models/launcher_settings.dart';
 import '../../gestures/services/system_gesture_service.dart';
@@ -44,7 +46,12 @@ class AppearanceSettingsScreen extends ConsumerWidget {
             const SettingsSectionTitle('Cor de destaque'),
             _AccentPicker(
               selected: settings.accent,
+              custom: settings.customAccentArgb,
               onChanged: controller.setAccent,
+            ),
+            _CustomAccentPicker(
+              current: settings.customAccentArgb,
+              onChanged: controller.setCustomAccent,
             ),
 
             const SettingsSectionTitle('Alinhamento na Home'),
@@ -63,6 +70,63 @@ class AppearanceSettingsScreen extends ConsumerWidget {
                     value: ContentAlignment.center,
                     title: Text('Ao centro'),
                   ),
+                ],
+              ),
+            ),
+
+            const SettingsSectionTitle('Tipo de letra'),
+            RadioGroup<LauncherFont>(
+              groupValue: settings.font,
+              onChanged: (LauncherFont? value) {
+                if (value != null) controller.setFont(value);
+              },
+              child: Column(
+                children: <Widget>[
+                  for (final LauncherFont font in LauncherFont.values)
+                    RadioListTile<LauncherFont>(
+                      value: font,
+                      title: Text(
+                        font.label,
+                        style: font.apply(
+                          Theme.of(context).textTheme.bodyLarge ?? const TextStyle(),
+                        ),
+                      ),
+                      subtitle: Text(
+                        font.sample,
+                        style: font.apply(
+                          Theme.of(context).textTheme.bodySmall ?? const TextStyle(),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            const SettingsSectionTitle('Relógio'),
+            RadioGroup<ClockStyle>(
+              groupValue: settings.clockStyle,
+              onChanged: (ClockStyle? value) {
+                if (value != null) controller.setClockStyle(value);
+              },
+              child: Column(
+                children: <Widget>[
+                  for (final ClockStyle style in ClockStyle.values)
+                    RadioListTile<ClockStyle>(
+                      value: style,
+                      title: Text(style.label),
+                      secondary: Text(
+                        style.isStacked ? '09\n41' : '09:41',
+                        textAlign: TextAlign.center,
+                        style: settings.font.apply(
+                          TextStyle(
+                            fontSize: style.size * 0.34,
+                            fontWeight: style.weight,
+                            height: style.isStacked ? 0.95 : 1.2,
+                            color: context.palette.primaryText,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -215,9 +279,16 @@ class AppearanceSettingsScreen extends ConsumerWidget {
 
 /// Uma fila de círculos com as cores disponíveis.
 class _AccentPicker extends StatelessWidget {
-  const _AccentPicker({required this.selected, required this.onChanged});
+  const _AccentPicker({
+    required this.selected,
+    required this.custom,
+    required this.onChanged,
+  });
 
   final AccentColor selected;
+
+  /// Quando há cor personalizada, nenhum dos círculos está ativo.
+  final int? custom;
   final ValueChanged<AccentColor> onChanged;
 
   @override
@@ -249,7 +320,7 @@ class _AccentPicker extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: Color(isDark ? accent.darkValue : accent.lightValue),
                         border: Border.all(
-                          color: accent == selected
+                          color: accent == selected && custom == null
                               ? context.palette.primaryText
                               : Colors.transparent,
                           width: 2.5,
@@ -314,6 +385,153 @@ class _SliderTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Seletor de cor livre: matiz e saturação.
+///
+/// O brilho não é escolhido de propósito. Uma cor de destaque tem de se ler
+/// sobre painéis claros *e* escuros, e deixar essa dimensão livre garantia
+/// que mais cedo ou mais tarde alguém escolheria uma que desaparecia num dos
+/// temas. O matiz e a saturação — que é onde está a identidade da cor —
+/// ficam inteiramente à escolha; ver [AccentResolver].
+class _CustomAccentPicker extends StatefulWidget {
+  const _CustomAccentPicker({required this.current, required this.onChanged});
+
+  final int? current;
+  final ValueChanged<int> onChanged;
+
+  @override
+  State<_CustomAccentPicker> createState() => _CustomAccentPickerState();
+}
+
+class _CustomAccentPickerState extends State<_CustomAccentPicker> {
+  late double _hue;
+  late double _saturation;
+
+  @override
+  void initState() {
+    super.initState();
+    final HSLColor start = widget.current == null
+        ? const HSLColor.fromAHSL(1, 250, 0.7, 0.55)
+        : HSLColor.fromColor(Color(widget.current!));
+    _hue = start.hue;
+    _saturation = start.saturation.clamp(0.0, 1.0);
+  }
+
+  void _emit() => widget.onChanged(AccentResolver.raw(_hue, _saturation).toARGB32());
+
+  @override
+  Widget build(BuildContext context) {
+    final LauncherPalette palette = context.palette;
+    final Color preview = AccentResolver.raw(_hue, _saturation);
+    final bool active = widget.current != null;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: preview,
+                  border: Border.all(
+                    color: active ? palette.primaryText : palette.panelBorder,
+                    width: active ? 2.5 : 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'Cor à escolha',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+              Text(
+                '#${preview.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+          _HueSlider(
+            hue: _hue,
+            saturation: _saturation,
+            onChanged: (double value) {
+              setState(() => _hue = value);
+              _emit();
+            },
+          ),
+          Slider(
+            value: _saturation,
+            onChanged: (double value) {
+              setState(() => _saturation = value);
+              _emit();
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              'O brilho é ajustado ao tema para a cor não desaparecer sobre os '
+              'painéis claros ou escuros.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Slider com o arco-íris por trás, para se ver o que se está a escolher.
+class _HueSlider extends StatelessWidget {
+  const _HueSlider({
+    required this.hue,
+    required this.saturation,
+    required this.onChanged,
+  });
+
+  final double hue;
+  final double saturation;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            height: 6,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(3),
+              gradient: LinearGradient(
+                colors: <Color>[
+                  for (int degree = 0; degree <= 360; degree += 30)
+                    HSLColor.fromAHSL(1, degree.toDouble() % 360, saturation, 0.55)
+                        .toColor(),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: Colors.transparent,
+            inactiveTrackColor: Colors.transparent,
+            thumbColor: HSLColor.fromAHSL(1, hue, saturation, 0.55).toColor(),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+          ),
+          child: Slider(value: hue, max: 359, onChanged: onChanged),
+        ),
+      ],
     );
   }
 }

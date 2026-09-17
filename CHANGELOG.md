@@ -1,5 +1,27 @@
 # Registo de alterações
 
+## Por publicar
+
+### Adicionado
+
+- **Tipo de letra para a aplicação inteira**: a do sistema, Inter, Outfit,
+  Lora ou JetBrains Mono. Vêm embutidas no APK (1,4 MB) porque o Lume não
+  declara permissão de Internet e não as pode ir buscar à rede. As licenças
+  OFL acompanham os ficheiros.
+- **Cor de destaque à escolha**, para lá das seis da paleta. Matiz e saturação
+  são livres; o brilho é ajustado ao tema, senão um azul-escuro desaparecia
+  sobre o painel escuro e um amarelo-claro sobre o claro.
+- **Cinco estilos de relógio**: fino, normal, forte, discreto e empilhado
+  (horas numa linha, minutos na seguinte).
+- **Reordenar os favoritos sem sair do ecrã inicial**, pelo menu de manter
+  premido numa zona vazia.
+- **107 símbolos** em vez de 60, com pesquisa no seletor.
+
+### Corrigido
+
+- Com o conteúdo ao centro, o ícone ficava encostado à margem esquerda
+  enquanto o nome centrava. Passam a andar juntos.
+
 ## v0.1.3
 
 ### Adicionado

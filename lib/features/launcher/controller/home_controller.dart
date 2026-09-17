@@ -42,3 +42,20 @@ class LetterOverlayNotifier extends Notifier<String?> {
 
 final NotifierProvider<LetterOverlayNotifier, String?> selectedLetterProvider =
     NotifierProvider<LetterOverlayNotifier, String?>(LetterOverlayNotifier.new);
+
+/// A Home está em modo de reordenar favoritos?
+///
+/// É um modo e não um arrasto directo porque manter premido já abre o menu
+/// contextual de cada aplicação — os dois gestos não podiam partilhar o
+/// mesmo toque.
+class ReorderModeNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
+
+  void exit() => state = false;
+}
+
+final NotifierProvider<ReorderModeNotifier, bool> reorderModeProvider =
+    NotifierProvider<ReorderModeNotifier, bool>(ReorderModeNotifier.new);

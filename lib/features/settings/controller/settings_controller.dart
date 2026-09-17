@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/launcher_fonts.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../data/models/launcher_settings.dart';
 
@@ -29,7 +30,17 @@ class SettingsNotifier extends Notifier<LauncherSettings> {
 
   void setPanelOpacity(double value) => _update(state.copyWith(panelOpacity: value));
 
-  void setAccent(AccentColor value) => _update(state.copyWith(accent: value));
+  void setAccent(AccentColor value) => _update(
+        state.copyWith(accent: value, clearCustomAccent: true),
+      );
+
+  void setCustomAccent(int argb) =>
+      _update(state.copyWith(customAccentArgb: argb));
+
+  void setFont(LauncherFont value) => _update(state.copyWith(font: value));
+
+  void setClockStyle(ClockStyle value) =>
+      _update(state.copyWith(clockStyle: value));
 
   void setContentAlignment(ContentAlignment value) =>
       _update(state.copyWith(contentAlignment: value));

@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart'
-    show CrossAxisAlignment, Curve, Curves, TextAlign, ThemeMode;
+    show CrossAxisAlignment, Curve, Curves, FontWeight, TextAlign, ThemeMode;
 
 import '../../core/constants/launcher_constants.dart';
+import '../../core/constants/launcher_fonts.dart';
 
 /// Gestos reconhecidos na Home (plano, secção 13).
 enum LauncherGesture {
@@ -49,6 +50,42 @@ enum GestureAction {
       if (action.key == key) return action;
     }
     return fallback;
+  }
+}
+
+/// Como desenhar o relógio da Home.
+///
+/// O tamanho é relativo à escala de letra escolhida, e a espessura é aplicada
+/// à fonte que estiver ativa — daí guardar os dois em vez de um TextStyle
+/// feito.
+enum ClockStyle {
+  thin('thin', 'Fino', 64, FontWeight.w200),
+  regular('regular', 'Normal', 58, FontWeight.w400),
+  strong('strong', 'Forte', 60, FontWeight.w700),
+  compact('compact', 'Discreto', 38, FontWeight.w300),
+  stacked('stacked', 'Empilhado', 56, FontWeight.w300, isStacked: true);
+
+  const ClockStyle(
+    this.key,
+    this.label,
+    this.size,
+    this.weight, {
+    this.isStacked = false,
+  });
+
+  final String key;
+  final String label;
+  final double size;
+  final FontWeight weight;
+
+  /// Horas numa linha, minutos na seguinte.
+  final bool isStacked;
+
+  static ClockStyle parse(String? key) {
+    for (final ClockStyle value in ClockStyle.values) {
+      if (value.key == key) return value;
+    }
+    return ClockStyle.thin;
   }
 }
 
@@ -199,6 +236,9 @@ class LauncherSettings {
     this.iconStyle = IconStyle.symbols,
     this.panelOpacity = 1,
     this.accent = AccentColor.blue,
+    this.customAccentArgb,
+    this.font = LauncherFont.system,
+    this.clockStyle = ClockStyle.thin,
     this.contentAlignment = ContentAlignment.start,
     this.showClock = true,
     this.showDate = true,
@@ -245,6 +285,14 @@ class LauncherSettings {
   /// controlos.
   final AccentColor accent;
 
+  /// Cor escolhida à mão. Quando existe, ganha a [accent]. O brilho é
+  /// ajustado ao tema na altura de a usar, para o contraste nos painéis não
+  /// depender do que a pessoa escolheu.
+  final int? customAccentArgb;
+
+  final LauncherFont font;
+  final ClockStyle clockStyle;
+
   /// Alinhamento do relógio, da data e dos favoritos.
   final ContentAlignment contentAlignment;
   final bool showClock;
@@ -279,6 +327,10 @@ class LauncherSettings {
     IconStyle? iconStyle,
     double? panelOpacity,
     AccentColor? accent,
+    int? customAccentArgb,
+    bool clearCustomAccent = false,
+    LauncherFont? font,
+    ClockStyle? clockStyle,
     ContentAlignment? contentAlignment,
     bool? showClock,
     bool? showDate,
@@ -302,6 +354,12 @@ class LauncherSettings {
       panelOpacity: (panelOpacity ?? this.panelOpacity)
           .clamp(LauncherMetrics.minPanelOpacity, LauncherMetrics.maxPanelOpacity),
       accent: accent ?? this.accent,
+      // Um `null` em copyWith significa "não mexer", por isso limpar a cor
+      // personalizada precisa de uma bandeira própria.
+      customAccentArgb:
+          clearCustomAccent ? null : (customAccentArgb ?? this.customAccentArgb),
+      font: font ?? this.font,
+      clockStyle: clockStyle ?? this.clockStyle,
       contentAlignment: contentAlignment ?? this.contentAlignment,
       showClock: showClock ?? this.showClock,
       showDate: showDate ?? this.showDate,
@@ -328,6 +386,9 @@ class LauncherSettings {
           other.iconStyle == iconStyle &&
           other.panelOpacity == panelOpacity &&
           other.accent == accent &&
+          other.customAccentArgb == customAccentArgb &&
+          other.font == font &&
+          other.clockStyle == clockStyle &&
           other.contentAlignment == contentAlignment &&
           other.showClock == showClock &&
           other.showDate == showDate &&
@@ -342,13 +403,18 @@ class LauncherSettings {
           mapEquals(other.gestures, gestures);
 
   @override
-  int get hashCode => Object.hash(
+  // hashAll e não hash: são mais de vinte campos, que é o limite do
+  // Object.hash.
+  int get hashCode => Object.hashAll(<Object?>[
         theme,
         fontScale,
         itemSpacing,
         iconStyle,
         panelOpacity,
         accent,
+        customAccentArgb,
+        font,
+        clockStyle,
         contentAlignment,
         showClock,
         showDate,
@@ -361,5 +427,5 @@ class LauncherSettings {
         searchOpensSingleResult,
         favoritesLimit,
         Object.hashAll(gestures.entries.map((e) => Object.hash(e.key, e.value))),
-      );
+      ]);
 }

@@ -28,6 +28,9 @@ abstract final class PreferenceKeys {
   static const String iconStyle = 'settings.icon_style';
   static const String animationStyle = 'settings.animation_style';
   static const String accentColor = 'settings.accent_color';
+  static const String customAccent = 'settings.custom_accent';
+  static const String fontFamily = 'settings.font_family';
+  static const String clockStyle = 'settings.clock_style';
   static const String contentAlignment = 'settings.content_alignment';
   static const String showClock = 'settings.show_clock';
   static const String showDate = 'settings.show_date';

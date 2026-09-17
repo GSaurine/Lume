@@ -24,6 +24,22 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  # Fontes variáveis, embutidas porque a app não tem acesso à rede. As
+  # licenças OFL estão ao lado dos ficheiros, como o OFL exige.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
+    - family: Outfit
+      fonts:
+        - asset: assets/fonts/Outfit.ttf
+    - family: Lora
+      fonts:
+        - asset: assets/fonts/Lora.ttf
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono.ttf
+
 # Ícone da aplicação (FASE 12).
 # Regenerar com: dart run flutter_launcher_icons
 #

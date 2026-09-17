@@ -13,26 +13,14 @@ class LumeApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final double fontScale = ref.watch(settingsProvider.select((s) => s.fontScale));
-    final double panelOpacity =
-        ref.watch(settingsProvider.select((s) => s.panelOpacity));
-    final AccentColor accent = ref.watch(settingsProvider.select((s) => s.accent));
-    final ThemePreference theme = ref.watch(settingsProvider.select((s) => s.theme));
+    final LauncherSettings settings = ref.watch(settingsProvider);
 
     return MaterialApp(
       title: 'Lume',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(
-        fontScale: fontScale,
-        panelOpacity: panelOpacity,
-        accent: accent,
-      ),
-      darkTheme: AppTheme.dark(
-        fontScale: fontScale,
-        panelOpacity: panelOpacity,
-        accent: accent,
-      ),
-      themeMode: theme.themeMode,
+      theme: AppTheme.light(settings),
+      darkTheme: AppTheme.dark(settings),
+      themeMode: settings.theme.themeMode,
       localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

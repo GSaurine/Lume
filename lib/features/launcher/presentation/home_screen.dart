@@ -61,7 +61,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const _WallpaperScrim(),
 
             // Camada de gestos, por baixo de tudo o que é tocável.
-            _GestureLayer(onGesture: _handleGesture),
+            _GestureLayer(
+              onGesture: _handleGesture,
+              onReorder: () => ref.read(reorderModeProvider.notifier).toggle(),
+            ),
 
             SafeArea(
               child: Column(
@@ -217,9 +220,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 /// Camada transparente que interpreta os gestos na área livre da Home.
 class _GestureLayer extends StatefulWidget {
-  const _GestureLayer({required this.onGesture});
+  const _GestureLayer({required this.onGesture, required this.onReorder});
 
   final Future<void> Function(LauncherGesture gesture) onGesture;
+  final VoidCallback onReorder;
 
   @override
   State<_GestureLayer> createState() => _GestureLayerState();
@@ -231,13 +235,17 @@ class _GestureLayerState extends State<_GestureLayer> {
 
   @override
   Widget build(BuildContext context) {
+    final VoidCallback onReorder = widget.onReorder;
+
     return Positioned.fill(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onDoubleTap: () => widget.onGesture(LauncherGesture.doubleTap),
         onLongPress: () async {
           await HapticFeedback.mediumImpact();
-          if (context.mounted) await _showHomeMenu(context);
+          if (context.mounted) {
+            await _showHomeMenu(context, onReorder: onReorder);
+          }
         },
         onVerticalDragStart: (_) => _verticalDelta = 0,
         onVerticalDragUpdate: (DragUpdateDetails details) =>
@@ -272,7 +280,10 @@ class _GestureLayerState extends State<_GestureLayer> {
   }
 
   /// Long press na área livre: atalho para personalizar (plano, secção 13).
-  static Future<void> _showHomeMenu(BuildContext context) {
+  static Future<void> _showHomeMenu(
+    BuildContext context, {
+    required VoidCallback onReorder,
+  }) {
     return showModalBottomSheet<void>(
       context: context,
       builder: (BuildContext sheetContext) => SafeArea(
@@ -287,6 +298,15 @@ class _GestureLayerState extends State<_GestureLayer> {
                 Navigator.of(context).push(
                   LauncherRoute.fromBottom<void>(const SettingsScreen(), style: MotionStyle.subtle),
                 );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.swap_vert_rounded),
+              title: const Text('Reordenar favoritos'),
+              subtitle: const Text('Arrastar sem sair do ecrã inicial'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                onReorder();
               },
             ),
             ListTile(

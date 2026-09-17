@@ -1,4 +1,5 @@
 import '../../core/constants/launcher_constants.dart';
+import '../../core/constants/launcher_fonts.dart';
 import '../models/launcher_settings.dart';
 import '../services/preferences_service.dart';
 
@@ -25,6 +26,11 @@ class SettingsRepository {
       accent: AccentColor.parse(
         _prefs.getInt(PreferenceKeys.accentColor, fallback: defaults.accent.index),
       ),
+      customAccentArgb: _prefs.getInt(PreferenceKeys.customAccent, fallback: 0) == 0
+          ? null
+          : _prefs.getInt(PreferenceKeys.customAccent, fallback: 0),
+      font: LauncherFont.parse(_prefs.getString(PreferenceKeys.fontFamily)),
+      clockStyle: ClockStyle.parse(_prefs.getString(PreferenceKeys.clockStyle)),
       contentAlignment:
           ContentAlignment.parse(_prefs.getString(PreferenceKeys.contentAlignment)),
       showClock: _prefs.getBool(PreferenceKeys.showClock, fallback: defaults.showClock),
@@ -62,6 +68,11 @@ class SettingsRepository {
       _prefs.setString(PreferenceKeys.iconStyle, settings.iconStyle.key),
       _prefs.setDouble(PreferenceKeys.panelOpacity, settings.panelOpacity),
       _prefs.setInt(PreferenceKeys.accentColor, settings.accent.index),
+      // 0 nunca é uma cor válida aqui (seria transparente), por isso serve
+      // de marcador para "sem cor personalizada".
+      _prefs.setInt(PreferenceKeys.customAccent, settings.customAccentArgb ?? 0),
+      _prefs.setString(PreferenceKeys.fontFamily, settings.font.key),
+      _prefs.setString(PreferenceKeys.clockStyle, settings.clockStyle.key),
       _prefs.setString(
         PreferenceKeys.contentAlignment,
         settings.contentAlignment.key,
