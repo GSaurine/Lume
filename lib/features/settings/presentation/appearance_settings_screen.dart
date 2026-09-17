@@ -116,6 +116,13 @@ class AppearanceSettingsScreen extends ConsumerWidget {
               onChanged: (bool value) => controller.setShowIcons(value: value),
             ),
 
+            SwitchListTile(
+              value: settings.animations,
+              title: const Text('Animações'),
+              subtitle: const Text('Desligar torna a navegação instantânea'),
+              onChanged: (bool value) => controller.setAnimations(value: value),
+            ),
+
             const SettingsSectionTitle('Painéis'),
             _SliderTile(
               title: 'Opacidade dos painéis',
@@ -127,12 +134,6 @@ class AppearanceSettingsScreen extends ConsumerWidget {
               divisions: 6,
               format: (double v) => '${(v * 100).round()}%',
               onChanged: controller.setPanelOpacity,
-            ),
-            SwitchListTile(
-              value: settings.animations,
-              title: const Text('Animações'),
-              subtitle: const Text('Desligar torna a navegação instantânea'),
-              onChanged: (bool value) => controller.setAnimations(value: value),
             ),
 
             const SettingsSectionTitle('Favoritos'),

@@ -14,7 +14,7 @@ class AboutScreen extends ConsumerWidget {
 
   /// Manter em sincronia com `version:` no pubspec.yaml — há um teste que
   /// falha se as duas se separarem.
-  static const String version = '0.1.1';
+  static const String version = '0.1.2';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

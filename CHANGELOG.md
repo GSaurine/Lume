@@ -1,6 +1,6 @@
 # Registo de alterações
 
-## Por publicar
+## v0.1.2
 
 ### Adicionado
 
@@ -17,6 +17,11 @@ da secção 15 do plano.
 - **Alinhamento na Home**: relógio, data e favoritos à esquerda ou ao centro.
 - **Mudar wallpaper** a partir de Definições → Aparência, abrindo o seletor do
   Android.
+
+### Corrigido
+
+- Com o conteúdo ao centro, o relógio e os favoritos não ficavam no mesmo eixo:
+  os favoritos descontavam a largura da barra alfabética e o relógio não.
 
 ### Alterado
 

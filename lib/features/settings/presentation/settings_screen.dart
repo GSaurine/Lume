@@ -39,7 +39,7 @@ class SettingsScreen extends ConsumerWidget {
             _SettingsEntry(
               icon: Icons.palette_outlined,
               title: 'Aparência',
-              subtitle: 'Tema, tamanho da letra, espaçamento, ícones',
+              subtitle: 'Tema, cor, alinhamento, opacidade, wallpaper',
               onTap: () => open(const AppearanceSettingsScreen()),
             ),
             _SettingsEntry(
@@ -57,7 +57,7 @@ class SettingsScreen extends ConsumerWidget {
             _SettingsEntry(
               icon: Icons.apps_rounded,
               title: 'Aplicações',
-              subtitle: 'Apps do sistema e apps ocultas',
+              subtitle: 'Apps do sistema, ocultas e nomes personalizados',
               onTap: () => open(const AppsSettingsScreen()),
             ),
             _SettingsEntry(

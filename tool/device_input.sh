@@ -5,6 +5,7 @@
 #   tool/device_input.sh swipe X1 Y1 X2 Y2 [DURACAO_MS]
 #   tool/device_input.sh tap X Y
 #   tool/device_input.sh key KEYCODE_BACK
+#   tool/device_input.sh text "Banco"
 
 set -euo pipefail
 
@@ -19,6 +20,7 @@ case "$action" in
   swipe) "$ADB" shell input swipe "$@" ;;
   tap)   "$ADB" shell input tap "$@" ;;
   key)   "$ADB" shell input keyevent "$@" ;;
+  text)  "$ADB" shell input text "$@" ;;
   *)     echo "Ação desconhecida: $action" >&2; exit 2 ;;
 esac
 

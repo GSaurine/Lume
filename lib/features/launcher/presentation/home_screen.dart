@@ -71,8 +71,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 24),
                   if (settings.showClock || settings.showDate)
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: LauncherMetrics.horizontalPadding,
+                      // A mesma largura útil dos favoritos: eles descontam a
+                      // barra alfabética, e sem isto o relógio centrado ficava
+                      // desalinhado deles.
+                      padding: EdgeInsets.only(
+                        left: LauncherMetrics.horizontalPadding,
+                        right: LauncherMetrics.horizontalPadding +
+                            (settings.showAlphabetIndex
+                                ? LauncherMetrics.alphabetBarWidth
+                                : 0),
                       ),
                       // Relógio e data são texto puro: sem IgnorePointer
                       // absorviam os deslizes começados por cima deles.
