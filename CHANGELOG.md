@@ -1,6 +1,6 @@
 # Registo de alterações
 
-## Por publicar
+## v0.1.3
 
 ### Adicionado
 
