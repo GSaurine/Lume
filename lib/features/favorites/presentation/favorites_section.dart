@@ -51,15 +51,15 @@ class FavoritesSection extends ConsumerWidget {
 
 /// A mesma lista, mas com setas para trocar a ordem.
 ///
-/// Setas e não arrastar, por duas razões. A Home tem gestos próprios de
-/// deslize e um arrasto vertical competia com eles na arena de gestos. E o
-/// ReorderableListView, encaixado aqui dentro de uma Column, deixava a cópia
-/// flutuante do item presa no Overlay depois de largar — ficava um ícone
-/// solto no fundo do ecrã até a app reiniciar.
+/// Setas e não arrastar porque a Home tem gestos próprios de deslize, e um
+/// arrasto vertical competiria com eles na arena de gestos. Para três a seis
+/// favoritos as setas também são rápidas e funcionam com uma mão só. O
+/// arrasto continua em Gerir favoritos, que é um ecrã normal.
 ///
-/// Para três a seis favoritos as setas são até mais rápidas, e funcionam com
-/// uma mão só. O arrasto continua a existir em Gerir favoritos, que é um
-/// ecrã normal onde nada disto se aplica.
+/// Nota histórica: houve um ícone "preso" no fundo do ecrã que se atribuiu
+/// por engano ao ReorderableListView. Era o flutter/flutter#188035 — sombras
+/// de texto desenhadas fora do sítio pelo Impeller — e foi resolvido subindo
+/// o Flutter para 3.44.5 ou superior (ver o piso em pubspec.yaml).
 class _ReorderableFavorites extends ConsumerWidget {
   const _ReorderableFavorites({required this.apps});
 

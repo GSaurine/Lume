@@ -5,6 +5,12 @@ version: 0.1.3+4
 
 environment:
   sdk: ^3.12.2
+  # 3.44.5 corrige flutter/flutter#188035: no Impeller, as sombras de um texto
+  # dentro de um SaveLayer eram desenhadas na origem do layer e não por baixo
+  # do texto. Os ícones do Material são texto, por isso na Home ficavam
+  # sombras de ícones soltas noutros sítios do ecrã. Abaixo disto, o build
+  # deve falhar em vez de sair com o bug.
+  flutter: '>=3.44.5'
 
 dependencies:
   flutter:

@@ -19,6 +19,14 @@
 
 ### Corrigido
 
+- **Sombras de ícones soltas no ecrã inicial.** Depois de desligar o ecrã ou
+  de voltar de outra aplicação, as sombras de alguns ícones apareciam sozinhas
+  noutros sítios — por cima da barra de estado, entre duas linhas, sobre a
+  barra de navegação. Era um bug do motor de desenho do Flutter (Impeller,
+  [flutter/flutter#188035](https://github.com/flutter/flutter/issues/188035)):
+  as sombras de texto dentro de uma camada iam parar à origem dessa camada, e
+  os ícones são desenhados como texto. Corrigido ao compilar com o Flutter
+  3.44.9.
 - Com o conteúdo ao centro, o ícone ficava encostado à margem esquerda
   enquanto o nome centrava. Passam a andar juntos.
 
