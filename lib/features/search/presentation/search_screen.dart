@@ -48,6 +48,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final List<InstalledApp> results = ref.watch(searchResultsProvider);
     final String query = ref.watch(searchQueryProvider);
     final LauncherPalette palette = context.palette;
+    final Size screen = MediaQuery.sizeOf(context);
+    // Deitado, com o teclado aberto, ficam uns 100dp para os resultados —
+    // numa lista, um só. Em grelha cabem três por linha.
+    final bool landscape = screen.width > screen.height;
 
     return Scaffold(
       backgroundColor: palette.panel,
@@ -58,20 +62,22 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             Expanded(
               child: results.isEmpty
                   ? _NoResults(query: query)
-                  : ListView.builder(
-                      // Resultados de baixo para cima: o melhor fica junto
-                      // ao campo de texto.
-                      reverse: true,
-                      keyboardDismissBehavior:
-                          ScrollViewKeyboardDismissBehavior.onDrag,
-                      padding: const EdgeInsets.only(bottom: 8),
-                      itemCount: results.length,
-                      itemBuilder: (BuildContext context, int index) => AppTile(
-                        app: results[index],
-                        key: ValueKey<String>(results[index].id),
-                        onLaunched: _close,
-                      ),
-                    ),
+                  : landscape
+                      ? _ResultsGrid(results: results, onLaunched: _close)
+                      : ListView.builder(
+                          // Resultados de baixo para cima: o melhor fica junto
+                          // ao campo de texto.
+                          reverse: true,
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
+                          padding: const EdgeInsets.only(bottom: 8),
+                          itemCount: results.length,
+                          itemBuilder: (BuildContext context, int index) => AppTile(
+                            app: results[index],
+                            key: ValueKey<String>(results[index].id),
+                            onLaunched: _close,
+                          ),
+                        ),
             ),
             _SearchField(
               controller: _controller,
@@ -83,6 +89,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ref.read(searchQueryProvider.notifier).clear();
               },
               hasText: query.isNotEmpty,
+              compact: landscape,
             ),
           ],
         ),
@@ -125,6 +132,7 @@ class _SearchField extends StatelessWidget {
     required this.onSubmitted,
     required this.onClear,
     required this.hasText,
+    this.compact = false,
   });
 
   final TextEditingController controller;
@@ -134,16 +142,19 @@ class _SearchField extends StatelessWidget {
   final VoidCallback onClear;
   final bool hasText;
 
+  /// Menos margem em cima e em baixo, para quando a altura é pouca.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     final LauncherPalette palette = context.palette;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         LauncherMetrics.horizontalPadding,
+        compact ? 4 : 12,
         12,
-        12,
-        16,
+        compact ? 4 : 16,
       ),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: palette.panelBorder)),
@@ -178,6 +189,45 @@ class _SearchField extends StatelessWidget {
   }
 }
 
+/// Os resultados em várias colunas, para o telemóvel deitado.
+///
+/// Como na lista, de baixo para cima: o melhor fica no canto junto ao campo.
+class _ResultsGrid extends ConsumerWidget {
+  const _ResultsGrid({required this.results, required this.onLaunched});
+
+  final List<InstalledApp> results;
+  final VoidCallback onLaunched;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool showIcons = ref.watch(settingsProvider.select((s) => s.showIcons));
+    final TextStyle? style = Theme.of(context).textTheme.bodyLarge;
+    final double lineHeight =
+        MediaQuery.textScalerOf(context).scale(style?.fontSize ?? 16) * (style?.height ?? 1.5);
+
+    return GridView.builder(
+      reverse: true,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.only(bottom: 4),
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,
+        mainAxisExtent: AppTile.heightFor(
+          lineHeight: lineHeight,
+          spacing: AppTile.denseSpacing,
+          showIcons: showIcons,
+        ),
+      ),
+      itemCount: results.length,
+      itemBuilder: (BuildContext context, int index) => AppTile(
+        app: results[index],
+        key: ValueKey<String>(results[index].id),
+        dense: true,
+        onLaunched: onLaunched,
+      ),
+    );
+  }
+}
+
 class _NoResults extends StatelessWidget {
   const _NoResults({required this.query});
 
@@ -185,8 +235,10 @@ class _NoResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Deitado, com o teclado aberto, a lista fica com uns 90dp: sem o scroll
+    // a margem e o texto não cabiam.
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Text(
           query.isEmpty

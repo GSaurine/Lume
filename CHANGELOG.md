@@ -1,5 +1,28 @@
 # Registo de alterações
 
+## Por publicar
+
+### Corrigido
+
+- **Telemóvel deitado.** O ecrã inicial era uma coluna pensada para o
+  telemóvel de pé: deitado sobram uns 390dp de altura e só seis favoritos
+  pedem 340, por isso o relógio, os favoritos e o "Pesquisar" não cabiam e os
+  últimos ficavam cortados (até 280dp a mais com o relógio empilhado e o
+  banner). Agora, deitado, o relógio e o "Pesquisar" ficam à esquerda e os
+  favoritos à direita. Os favoritos medem o espaço que têm: se não cabem,
+  apertam o espaçamento e, se ainda assim não chegar, passam a duas colunas.
+- **Índice alfabético deitado**: ficavam 9dp por letra e a letra precisa de
+  12,6, por isso as letras sobrepunham-se. Quando não cabem todas mostra
+  algumas com pontos entre elas; o dedo continua a percorrer todas, e a letra
+  em que está aparece no lugar do ponto.
+- **Pesquisa deitada**: com o teclado aberto só se via um resultado. Agora os
+  resultados ficam em grelha, três por linha.
+- O menu de manter premido numa aplicação, o menu rápido da Home e o diálogo
+  "Dar outro nome" não cabiam na altura do ecrã deitado; agora deslizam.
+- O painel de uma letra, deitado, deixou de ocupar 640dp de largura.
+- O menu rápido dizia "Arrastar" para reordenar, mas a reordenação é com
+  setas.
+
 ## v0.1.4
 
 ### Adicionado

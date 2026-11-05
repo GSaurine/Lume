@@ -36,94 +36,97 @@ class _AppContextMenu extends ConsumerWidget {
       appLabelsProvider.select((Map<String, String> l) => l.containsKey(app.packageName)),
     );
 
+    // Deitado, as oito entradas não cabem na altura do ecrã: deixa deslizar.
     return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(app.name, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 2),
-                Text(
-                  app.packageName,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: palette.tertiaryText,
-                      ),
-                ),
-              ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(app.name, style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 2),
+                  Text(
+                    app.packageName,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: palette.tertiaryText,
+                        ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Divider(),
-          ListTile(
-            leading: Icon(isFavorite ? Icons.star_rounded : Icons.star_border_rounded),
-            title: Text(isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'),
-            onTap: () async {
-              final NavigatorState navigator = Navigator.of(context);
-              await ref.read(favoritePackagesProvider.notifier).toggle(app.packageName);
-              if (navigator.mounted) navigator.pop();
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              isHidden ? Icons.visibility_rounded : Icons.visibility_off_outlined,
-            ),
-            title: Text(isHidden ? 'Mostrar na lista' : 'Ocultar da lista'),
-            subtitle: isHidden
-                ? null
-                : const Text('Continua a aparecer na pesquisa por nome exato.'),
-            onTap: () async {
-              final NavigatorState navigator = Navigator.of(context);
-              await ref.read(hiddenAppsProvider.notifier).toggle(app.packageName);
-              if (navigator.mounted) navigator.pop();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.drive_file_rename_outline_rounded),
-            title: Text(isRenamed ? 'Mudar o nome' : 'Dar outro nome'),
-            // Sem legenda com o nome original: neste ponto `app.name` já é o
-            // nome personalizado, porque a substituição acontece na lista.
-            subtitle: isRenamed ? const Text('Nome personalizado') : null,
-            onTap: () async {
-              final NavigatorState navigator = Navigator.of(context);
-              await showRenameAppDialog(context, app);
-              if (navigator.mounted) navigator.pop();
-            },
-          ),
-          ListTile(
-            leading: Icon(ref.watch(appSymbolProvider(app)).icon),
-            title: const Text('Escolher ícone'),
-            onTap: () async {
-              final NavigatorState navigator = Navigator.of(context);
-              navigator.pop();
-              await showSymbolPicker(context, app);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.info_outline_rounded),
-            title: const Text('Informações da aplicação'),
-            onTap: () async {
-              final NavigatorState navigator = Navigator.of(context);
-              await ref.read(appLauncherProvider).openAppInfo(app.packageName);
-              if (navigator.mounted) navigator.pop();
-            },
-          ),
-          if (!app.isSystemApp)
+            const Divider(),
             ListTile(
-              leading: Icon(Icons.delete_outline_rounded, color: palette.danger),
-              title: Text('Desinstalar', style: TextStyle(color: palette.danger)),
+              leading: Icon(isFavorite ? Icons.star_rounded : Icons.star_border_rounded),
+              title: Text(isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'),
               onTap: () async {
                 final NavigatorState navigator = Navigator.of(context);
-                // Quem confirma é o Android; nós só abrimos o pedido.
-                await ref.read(appLauncherProvider).requestUninstall(app.packageName);
+                await ref.read(favoritePackagesProvider.notifier).toggle(app.packageName);
                 if (navigator.mounted) navigator.pop();
               },
             ),
-          const SizedBox(height: LauncherMetrics.horizontalPadding / 2),
-        ],
+            ListTile(
+              leading: Icon(
+                isHidden ? Icons.visibility_rounded : Icons.visibility_off_outlined,
+              ),
+              title: Text(isHidden ? 'Mostrar na lista' : 'Ocultar da lista'),
+              subtitle: isHidden
+                  ? null
+                  : const Text('Continua a aparecer na pesquisa por nome exato.'),
+              onTap: () async {
+                final NavigatorState navigator = Navigator.of(context);
+                await ref.read(hiddenAppsProvider.notifier).toggle(app.packageName);
+                if (navigator.mounted) navigator.pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.drive_file_rename_outline_rounded),
+              title: Text(isRenamed ? 'Mudar o nome' : 'Dar outro nome'),
+              // Sem legenda com o nome original: neste ponto `app.name` já é o
+              // nome personalizado, porque a substituição acontece na lista.
+              subtitle: isRenamed ? const Text('Nome personalizado') : null,
+              onTap: () async {
+                final NavigatorState navigator = Navigator.of(context);
+                await showRenameAppDialog(context, app);
+                if (navigator.mounted) navigator.pop();
+              },
+            ),
+            ListTile(
+              leading: Icon(ref.watch(appSymbolProvider(app)).icon),
+              title: const Text('Escolher ícone'),
+              onTap: () async {
+                final NavigatorState navigator = Navigator.of(context);
+                navigator.pop();
+                await showSymbolPicker(context, app);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline_rounded),
+              title: const Text('Informações da aplicação'),
+              onTap: () async {
+                final NavigatorState navigator = Navigator.of(context);
+                await ref.read(appLauncherProvider).openAppInfo(app.packageName);
+                if (navigator.mounted) navigator.pop();
+              },
+            ),
+            if (!app.isSystemApp)
+              ListTile(
+                leading: Icon(Icons.delete_outline_rounded, color: palette.danger),
+                title: Text('Desinstalar', style: TextStyle(color: palette.danger)),
+                onTap: () async {
+                  final NavigatorState navigator = Navigator.of(context);
+                  // Quem confirma é o Android; nós só abrimos o pedido.
+                  await ref.read(appLauncherProvider).requestUninstall(app.packageName);
+                  if (navigator.mounted) navigator.pop();
+                },
+              ),
+            const SizedBox(height: LauncherMetrics.horizontalPadding / 2),
+          ],
+        ),
       ),
     );
   }
@@ -168,6 +171,8 @@ class _RenameAppDialogState extends ConsumerState<_RenameAppDialog> {
         .containsKey(widget.app.packageName);
 
     return AlertDialog(
+      // Deitado, com o teclado aberto, sobram uns 150dp para o diálogo.
+      scrollable: true,
       title: const Text('Dar outro nome'),
       content: Column(
         mainAxisSize: MainAxisSize.min,

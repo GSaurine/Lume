@@ -67,58 +67,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
 
             SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  const DefaultLauncherBanner(),
-                  const SizedBox(height: 24),
-                  if (settings.showClock || settings.showDate)
-                    Padding(
-                      // A mesma largura útil dos favoritos: eles descontam a
-                      // barra alfabética, e sem isto o relógio centrado ficava
-                      // desalinhado deles.
-                      padding: EdgeInsets.only(
-                        left: LauncherMetrics.horizontalPadding,
-                        right: LauncherMetrics.horizontalPadding +
-                            (settings.showAlphabetIndex
-                                ? LauncherMetrics.alphabetBarWidth
-                                : 0),
-                      ),
-                      // Relógio e data são texto puro: sem IgnorePointer
-                      // absorviam os deslizes começados por cima deles.
-                      child: IgnorePointer(
-                        child: Column(
-                          crossAxisAlignment: settings.contentAlignment.crossAxis,
-                          children: <Widget>[
-                            if (settings.showClock) const ClockWidget(),
-                            if (settings.showDate) ...<Widget>[
-                              const SizedBox(height: 6),
-                              const DateWidget(),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  const Spacer(),
-
-                  // O índice alfabético fica à direita; os favoritos não lhe
-                  // devem passar por baixo.
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: settings.showAlphabetIndex
-                          ? LauncherMetrics.alphabetBarWidth
-                          : 0,
-                    ),
-                    child: const FavoritesSection(),
-                  ),
-                  const Spacer(flex: 2),
-                  SearchHint(
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  // O índice alfabético fica à direita; nada lhe deve passar
+                  // por baixo.
+                  final double barGap =
+                      settings.showAlphabetIndex ? LauncherMetrics.alphabetBarWidth : 0;
+                  final Widget searchHint = SearchHint(
                     onTap: () => _open(LauncherDestination.search),
                     visible: settings.actionFor(LauncherGesture.swipeUp) ==
                         GestureAction.openSearch,
-                  ),
-                  const SizedBox(height: 12),
-                ],
+                  );
+
+                  return constraints.maxWidth > constraints.maxHeight
+                      ? _LandscapeLayout(
+                          settings: settings,
+                          barGap: barGap,
+                          searchHint: searchHint,
+                        )
+                      : _PortraitLayout(
+                          settings: settings,
+                          barGap: barGap,
+                          searchHint: searchHint,
+                        );
+                },
               ),
             ),
 
@@ -129,7 +101,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 right: 0,
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 72),
+                    // De pé há altura de sobra; deitado, 72dp em cima e em
+                    // baixo deixavam 9dp por letra.
+                    padding: EdgeInsets.symmetric(
+                      vertical: _isLandscape(context) ? 12 : 72,
+                    ),
                     child: Consumer(
                       builder: (BuildContext context, WidgetRef ref, _) {
                         return AlphabetIndexBar(
@@ -176,6 +152,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  static bool _isLandscape(BuildContext context) {
+    final Size size = MediaQuery.sizeOf(context);
+    return size.width > size.height;
+  }
+
   void _closeLetterPanel() => ref.read(selectedLetterProvider.notifier).close();
 
   void _resetToHome() {
@@ -215,6 +196,144 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     };
 
     await Navigator.of(context).push(route);
+  }
+}
+
+/// O telemóvel de pé: banner, relógio e data em cima, favoritos no meio,
+/// "Pesquisar" em baixo.
+class _PortraitLayout extends StatelessWidget {
+  const _PortraitLayout({
+    required this.settings,
+    required this.barGap,
+    required this.searchHint,
+  });
+
+  final LauncherSettings settings;
+  final double barGap;
+  final Widget searchHint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const DefaultLauncherBanner(),
+        const SizedBox(height: 24),
+        if (settings.showClock || settings.showDate)
+          Padding(
+            // A mesma largura útil dos favoritos: eles descontam a barra
+            // alfabética, e sem isto o relógio centrado ficava desalinhado deles.
+            padding: EdgeInsets.only(
+              left: LauncherMetrics.horizontalPadding,
+              right: LauncherMetrics.horizontalPadding + barGap,
+            ),
+            child: _ClockAndDate(settings: settings),
+          ),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: barGap),
+            // Um terço do espaço livre por cima e dois por baixo, como os dois
+            // Spacer de antes — mas assim a secção sabe a altura que tem e
+            // pode adaptar-se em vez de transbordar.
+            child: const Align(
+              alignment: Alignment(0, -1 / 3),
+              child: FavoritesSection(),
+            ),
+          ),
+        ),
+        searchHint,
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+}
+
+/// O telemóvel deitado: relógio e "Pesquisar" à esquerda, favoritos à
+/// direita.
+///
+/// Empilhar tudo numa coluna, como de pé, não cabe: sobram uns 390dp de
+/// altura e só seis favoritos pedem 340.
+class _LandscapeLayout extends StatelessWidget {
+  const _LandscapeLayout({
+    required this.settings,
+    required this.barGap,
+    required this.searchHint,
+  });
+
+  final LauncherSettings settings;
+  final double barGap;
+  final Widget searchHint;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool centred = settings.contentAlignment == ContentAlignment.center;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const DefaultLauncherBanner(),
+              const SizedBox(height: 16),
+              // Ocupa o que sobra entre o banner e o "Pesquisar". Se o relógio
+              // não couber — empilhado, com letra grande e o banner visível —
+              // encolhe em vez de empurrar o resto para fora do ecrã.
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: LauncherMetrics.horizontalPadding,
+                  ),
+                  child: (settings.showClock || settings.showDate)
+                      ? FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: centred ? Alignment.topCenter : Alignment.topLeft,
+                          child: _ClockAndDate(settings: settings),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ),
+              searchHint,
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Padding(
+            padding: EdgeInsets.only(right: barGap),
+            child: const Align(child: FavoritesSection()),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Relógio e data, que são texto puro: sem IgnorePointer absorviam os
+/// deslizes começados por cima deles.
+class _ClockAndDate extends StatelessWidget {
+  const _ClockAndDate({required this.settings});
+
+  final LauncherSettings settings;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: settings.contentAlignment.crossAxis,
+        children: <Widget>[
+          if (settings.showClock) const ClockWidget(),
+          if (settings.showDate) ...<Widget>[
+            const SizedBox(height: 6),
+            const DateWidget(),
+          ],
+        ],
+      ),
+    );
   }
 }
 
@@ -286,51 +405,56 @@ class _GestureLayerState extends State<_GestureLayer> {
   }) {
     return showModalBottomSheet<void>(
       context: context,
+      // Sem isto a folha fica presa a 9/16 da altura: deitado, uns 230dp para
+      // a pega e quatro entradas.
+      isScrollControlled: true,
       builder: (BuildContext sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ListTile(
-              leading: const Icon(Icons.tune_rounded),
-              title: const Text('Definições do Lume'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                Navigator.of(context).push(
-                  LauncherRoute.fromBottom<void>(const SettingsScreen(), style: MotionStyle.subtle),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.swap_vert_rounded),
-              title: const Text('Reordenar favoritos'),
-              subtitle: const Text('Arrastar sem sair do ecrã inicial'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                onReorder();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.star_outline_rounded),
-              title: const Text('Gerir favoritos'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                Navigator.of(context).push(
-                  LauncherRoute.fromRight<void>(const FavoritesScreen(), style: MotionStyle.subtle),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.apps_rounded),
-              title: const Text('Todas as aplicações'),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                Navigator.of(context).push(
-                  LauncherRoute.fromRight<void>(const AppListScreen(), style: MotionStyle.subtle),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.tune_rounded),
+                title: const Text('Definições do Lume'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  Navigator.of(context).push(
+                    LauncherRoute.fromBottom<void>(const SettingsScreen(), style: MotionStyle.subtle),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.swap_vert_rounded),
+                title: const Text('Reordenar favoritos'),
+                subtitle: const Text('Com setas, sem sair do ecrã inicial'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  onReorder();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.star_outline_rounded),
+                title: const Text('Gerir favoritos'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  Navigator.of(context).push(
+                    LauncherRoute.fromRight<void>(const FavoritesScreen(), style: MotionStyle.subtle),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.apps_rounded),
+                title: const Text('Todas as aplicações'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  Navigator.of(context).push(
+                    LauncherRoute.fromRight<void>(const AppListScreen(), style: MotionStyle.subtle),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
     );

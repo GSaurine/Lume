@@ -14,6 +14,10 @@ import '../controller/favorites_controller.dart';
 ///
 /// Quando ainda não há favoritos mostramos uma dica em vez de espaço vazio:
 /// o gesto de os criar (manter premido) não é descobrível sozinho.
+///
+/// A secção mede a altura que tem e escolhe como se dispor — ver
+/// [FavoritesLayout]. Com o telemóvel deitado sobram uns 390dp, e seis
+/// favoritos com o espaçamento de origem já pedem 340.
 class FavoritesSection extends ConsumerWidget {
   const FavoritesSection({super.key});
 
@@ -27,24 +31,137 @@ class FavoritesSection extends ConsumerWidget {
 
     final List<InstalledApp> visible = favorites.take(limit).toList(growable: false);
 
-    if (reordering) return _ReorderableFavorites(apps: visible);
+    if (reordering) {
+      // Em modo de reordenar o scroll não incomoda: não se está a deslizar
+      // para abrir nada.
+      return SingleChildScrollView(child: _ReorderableFavorites(apps: visible));
+    }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        for (final InstalledApp app in visible)
-          AppTile(
-            app: app,
-            key: ValueKey<String>('favorite-${app.id}'),
-            overWallpaper: true,
-            textAlign: ref
-                .watch(settingsProvider.select((s) => s.contentAlignment))
-                .textAlign,
-            textStyle:
-                Theme.of(context).textTheme.headlineSmall.onWallpaper(context),
-          ),
-      ],
+    final double preferredSpacing =
+        ref.watch(settingsProvider.select((s) => s.itemSpacing));
+    final bool showIcons = ref.watch(settingsProvider.select((s) => s.showIcons));
+    final TextAlign textAlign =
+        ref.watch(settingsProvider.select((s) => s.contentAlignment)).textAlign;
+    final TextStyle style =
+        Theme.of(context).textTheme.headlineSmall.onWallpaper(context);
+    // A escala de acessibilidade do Android soma-se à do Lume.
+    final double lineHeight =
+        MediaQuery.textScalerOf(context).scale(style.fontSize ?? 23) *
+            (style.height ?? 1.25);
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final FavoritesLayout layout = FavoritesLayout.choose(
+          count: visible.length,
+          availableHeight: constraints.maxHeight,
+          availableWidth: constraints.maxWidth,
+          lineHeight: lineHeight,
+          preferredSpacing: preferredSpacing,
+          showIcons: showIcons,
+        );
+
+        Widget tile(InstalledApp app) => AppTile(
+              app: app,
+              key: ValueKey<String>('favorite-${app.id}'),
+              overWallpaper: true,
+              textAlign: textAlign,
+              textStyle: style,
+              spacing: layout.spacing,
+            );
+
+        final Widget list = layout.columns == 1
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[for (final InstalledApp app in visible) tile(app)],
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  for (int start = 0; start < visible.length; start += layout.columns)
+                    Row(
+                      children: <Widget>[
+                        for (int i = start; i < start + layout.columns; i++)
+                          Expanded(
+                            child: i < visible.length
+                                ? tile(visible[i])
+                                : const SizedBox.shrink(),
+                          ),
+                      ],
+                    ),
+                ],
+              );
+
+        if (layout.fits) return list;
+
+        // Último recurso, para configurações extremas: deixa deslizar em vez
+        // de cortar. Translúcido para os gestos da Home continuarem a chegar
+        // à camada de baixo.
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          hitTestBehavior: HitTestBehavior.translucent,
+          child: list,
+        );
+      },
+    );
+  }
+}
+
+/// Como dispor os favoritos na altura disponível.
+///
+/// Tenta, por esta ordem, e fica com a primeira que cabe: uma coluna com o
+/// espaçamento que a pessoa escolheu; uma coluna compacta; duas colunas com
+/// o espaçamento escolhido; duas colunas compactas. Duas colunas só se cada
+/// uma tiver largura para um nome se ler.
+@immutable
+class FavoritesLayout {
+  const FavoritesLayout({
+    required this.columns,
+    required this.spacing,
+    required this.fits,
+  });
+
+  final int columns;
+  final double spacing;
+
+  /// `false` quando nem a opção mais compacta cabe.
+  final bool fits;
+
+  static const double compactSpacing = 0;
+  static const double minColumnWidth = 160;
+
+  static FavoritesLayout choose({
+    required int count,
+    required double availableHeight,
+    required double availableWidth,
+    required double lineHeight,
+    required double preferredSpacing,
+    required bool showIcons,
+  }) {
+    if (count == 0 || !availableHeight.isFinite) {
+      return FavoritesLayout(columns: 1, spacing: preferredSpacing, fits: true);
+    }
+
+    final bool twoColumnsFit = availableWidth / 2 >= minColumnWidth;
+    final List<(int, double)> candidates = <(int, double)>[
+      (1, preferredSpacing),
+      if (preferredSpacing > compactSpacing) (1, compactSpacing),
+      if (twoColumnsFit) (2, preferredSpacing),
+      if (twoColumnsFit && preferredSpacing > compactSpacing) (2, compactSpacing),
+    ];
+
+    for (final (int columns, double spacing) in candidates) {
+      final int rows = (count / columns).ceil();
+      final double needed =
+          rows * AppTile.heightFor(lineHeight: lineHeight, spacing: spacing, showIcons: showIcons);
+      if (needed <= availableHeight) {
+        return FavoritesLayout(columns: columns, spacing: spacing, fits: true);
+      }
+    }
+    return FavoritesLayout(
+      columns: twoColumnsFit ? 2 : 1,
+      spacing: compactSpacing,
+      fits: false,
     );
   }
 }

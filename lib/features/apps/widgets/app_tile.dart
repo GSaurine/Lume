@@ -24,6 +24,7 @@ class AppTile extends ConsumerWidget {
     this.onLaunched,
     this.overWallpaper = false,
     this.textAlign,
+    this.spacing,
     super.key,
   });
 
@@ -48,12 +49,31 @@ class AppTile extends ConsumerWidget {
   /// conteúdo fica encostado à esquerda ou ao centro.
   final TextAlign? textAlign;
 
+  /// Espaçamento vertical imposto, que ganha à definição do utilizador. Os
+  /// favoritos usam-no quando não cabem todos com o espaço que ele escolheu.
+  final double? spacing;
+
+  /// O espaçamento de [dense].
+  static const double denseSpacing = 4;
+
+  /// Altura de um item: o texto (ou o ícone, se for maior) e 8 + [spacing]
+  /// em cima e em baixo. Para quem precisa de saber se os itens cabem, ou de
+  /// os pôr numa grelha.
+  static double heightFor({
+    required double lineHeight,
+    required double spacing,
+    required bool showIcons,
+  }) {
+    final double content =
+        showIcons && LauncherMetrics.iconSize > lineHeight ? LauncherMetrics.iconSize : lineHeight;
+    return content + 2 * (8 + spacing);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final showIcons = ref.watch(settingsProvider.select((s) => s.showIcons));
-    final double spacing = dense
-        ? 4
-        : ref.watch(settingsProvider.select((s) => s.itemSpacing));
+    final double spacing = this.spacing ??
+        (dense ? denseSpacing : ref.watch(settingsProvider.select((s) => s.itemSpacing)));
 
     final bool centred = textAlign == TextAlign.center;
 

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -24,12 +26,17 @@ class LetterAppsPanel extends ConsumerWidget {
 
     if (apps.isEmpty) return const SizedBox.shrink();
 
+    final Size screen = MediaQuery.sizeOf(context);
+    final bool landscape = screen.width > screen.height;
+
     return Align(
       alignment: Alignment.centerRight,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.72,
-          maxHeight: MediaQuery.sizeOf(context).height * 0.6,
+          // Deitado, 72% da largura dava um painel de 640dp para nomes curtos.
+          maxWidth: math.min(screen.width * 0.72, 420),
+          // E 60% da altura deixava ver só dois ou três apps.
+          maxHeight: screen.height * (landscape ? 0.85 : 0.6),
         ),
         child: DecoratedBox(
           decoration: BoxDecoration(
