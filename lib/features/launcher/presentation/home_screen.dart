@@ -231,6 +231,9 @@ class _PortraitLayout extends StatelessWidget {
             ),
             child: _ClockAndDate(settings: settings),
           ),
+        // Um intervalo antes dos favoritos: quando eles deslizam numa caixa,
+        // a caixa começa logo aqui, e o nome esbatido ficava colado à data.
+        const SizedBox(height: 16),
         Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: barGap),

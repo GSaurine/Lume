@@ -268,10 +268,9 @@ class FavoritesLayout {
   /// Com [FavoritesOverflow.shrink] tenta, por esta ordem, e fica com a
   /// primeira que cabe: o espaçamento escolhido; o compacto; letra e ícone a
   /// 90% e 80%; o mínimo legível — primeiro numa coluna e depois em duas, se
-  /// cada uma tiver largura para um nome se ler. Em duas colunas, cada
-  /// tentativa também tem de deixar ler os nomes ([namesThatMustFit]); se
-  /// nenhuma deixar, fica o mínimo legível, que é onde se corta menos. Se
-  /// nem assim couber, desliza no mais compacto.
+  /// cada uma tiver largura para um nome se ler. Em duas colunas fica a maior
+  /// que mostre inteiros tantos nomes quantos for possível, com a folga de
+  /// [namesThatMustFit]. Se nem assim couber, desliza no mais compacto.
   ///
   /// Com [FavoritesOverflow.scroll] nada muda de tamanho: uma coluna, como a
   /// pessoa a configurou, e desliza se não couber.
@@ -286,13 +285,12 @@ class FavoritesLayout {
     FavoritesOverflow overflow = FavoritesOverflow.shrink,
     List<double> nameWidths = const <double>[],
   }) {
-    bool namesFit(int columns, double scale) {
-      if (columns == 1 || nameWidths.isEmpty) return true;
+    /// Quantos nomes cabem inteiros numa coluna, a esta escala.
+    int namesFitting(int columns, double scale) {
       final double room = availableWidth / columns -
           2 * LauncherMetrics.horizontalPadding -
           (showIcons ? (LauncherMetrics.iconSize + 14) * scale : 0);
-      final int fitting = nameWidths.where((double w) => w * scale <= room).length;
-      return fitting >= (nameWidths.length * namesThatMustFit).ceil();
+      return nameWidths.where((double w) => w * scale <= room).length;
     }
 
     bool fits(int columns, double spacing, double scale) {
@@ -328,21 +326,42 @@ class FavoritesLayout {
     final bool twoColumnsFit = availableWidth / 2 >= minColumnWidth;
 
     for (final int columns in <int>[1, if (twoColumnsFit) 2]) {
+      // Em cada tamanho, primeiro o espaçamento escolhido e depois o
+      // compacto: encolher a letra não obriga a juntar as linhas se houver
+      // altura para elas.
       final List<(double, double)> attempts = <(double, double)>[
-        (preferredSpacing, 1),
-        if (preferredSpacing > compactSpacing) (compactSpacing, 1),
-        for (final double scale in scales.skip(1)) (compactSpacing, scale),
+        for (final double scale in scales) ...<(double, double)>[
+          (preferredSpacing, scale),
+          if (preferredSpacing > compactSpacing) (compactSpacing, scale),
+        ],
       ];
-      for (final (double spacing, double scale) in attempts) {
-        if (fits(columns, spacing, scale) && (scale == floor || namesFit(columns, scale))) {
-          return FavoritesLayout(
-            columns: columns,
-            spacing: spacing,
-            scale: scale,
-            scrolls: false,
-          );
+      final List<(double, double)> fitting = <(double, double)>[
+        for (final (double spacing, double scale) in attempts)
+          if (fits(columns, spacing, scale)) (spacing, scale),
+      ];
+      if (fitting.isEmpty) continue;
+
+      // Numa coluna os nomes têm a largura toda: fica a primeira que cabe.
+      // Em duas, a maior que mostre inteiros tantos nomes quantos for
+      // possível — com a folga de [namesThatMustFit], para um ou dois nomes
+      // muito compridos não arrastarem os outros todos para o mínimo.
+      (double, double) chosen = fitting.first;
+      if (columns > 1 && nameWidths.isNotEmpty) {
+        int best = 0;
+        for (final (double _, double scale) in fitting) {
+          best = math.max(best, namesFitting(columns, scale));
         }
+        final int target = math.min((nameWidths.length * namesThatMustFit).ceil(), best);
+        chosen = fitting.firstWhere(
+          ((double, double) a) => namesFitting(columns, a.$2) >= target,
+        );
       }
+      return FavoritesLayout(
+        columns: columns,
+        spacing: chosen.$1,
+        scale: chosen.$2,
+        scrolls: false,
+      );
     }
 
     return FavoritesLayout(

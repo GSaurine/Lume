@@ -292,22 +292,37 @@ void main() {
     test('em duas colunas encolhe até os nomes caberem', () {
       // Colunas de 200, menos 2 × 24 de margem: 152 para o nome. Um nome de
       // 180 só cabe a 80% (144).
-      FavoritesLayout withNames(double width) => FavoritesLayout.choose(
-            count: 6,
+      FavoritesLayout withNames(List<double> widths) => FavoritesLayout.choose(
+            count: widths.length,
             availableHeight: 200,
             availableWidth: 400,
             fontSizeAt: (double scale) => 24 * scale,
             lineHeightFactor: 1.25,
             preferredSpacing: 6,
             showIcons: false,
-            nameWidths: List<double>.filled(6, width),
+            nameWidths: widths,
           );
 
-      expect(describe(withNames(180)), (2, 0.0, 0.8, false));
-      // Nomes que não cabem nunca: fica o mínimo legível, onde se corta menos.
-      final FavoritesLayout hopeless = withNames(400);
-      expect((hopeless.columns, hopeless.scrolls), (2, false));
-      expect(hopeless.scale, closeTo(16 / 24, 1e-9));
+      expect(describe(withNames(List<double>.filled(6, 180))), (2, 6.0, 0.8, false));
+      // Nomes que não cabem a nenhum tamanho: encolher não adianta, fica o
+      // maior que cabe na altura.
+      expect(describe(withNames(List<double>.filled(6, 400))), (2, 6.0, 1.0, false));
+    });
+
+    test('um nome muito comprido não arrasta os outros para o mínimo', () {
+      // Como no telemóvel: cinco nomes que cabem e um ("Autenticação Gov")
+      // que não cabe nem no mínimo. Fica o tamanho escolhido.
+      final FavoritesLayout layout = FavoritesLayout.choose(
+        count: 6,
+        availableHeight: 200,
+        availableWidth: 400,
+        fontSizeAt: (double scale) => 24 * scale,
+        lineHeightFactor: 1.25,
+        preferredSpacing: 6,
+        showIcons: false,
+        nameWidths: <double>[140, 140, 140, 140, 140, 400],
+      );
+      expect(describe(layout), (2, 6.0, 1.0, false));
     });
 
     test('estreito demais para duas colunas e baixo demais: desliza no mínimo', () {
