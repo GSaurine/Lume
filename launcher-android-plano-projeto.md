@@ -1127,3 +1127,178 @@ MVP
 A primeira implementação prática deve ser **fazer o Android reconhecer o aplicativo como launcher e conseguir listar/abrir os aplicativos instalados**.
 
 Depois disso, a interface pode ser construída sobre uma base técnica já funcional.
+
+---
+
+# 25. Próximas versões (depois da v0.1.4)
+
+As fases 0–12 estão feitas. Esta secção junta o que veio de quem usa o Lume.
+Os princípios da secção 23 mantêm-se: tudo fica no telemóvel e o Lume
+continua sem permissão de Internet.
+
+## 25.1 Mais favoritos na Home — prioridade 1
+
+**Hoje:** o limite vai de 3 a 10 (Definições → Aparência → Favoritos), e de
+origem são 6. Com 7 ou mais, a Home já aperta o espaçamento e passa a duas
+colunas sozinha (v0.1.5, por publicar). Mas o tamanho da letra e dos ícones
+nunca muda, e passar de 10 não é possível.
+
+**Proposta:** o limite sobe para 20, e há uma definição nova:
+
+```text
+Quando os favoritos não cabem
+○ Encolher               (de origem)
+○ Deslizar numa caixa
+```
+
+### Encolher
+
+Tenta, por esta ordem, e fica com a primeira que cabe:
+
+```text
+espaçamento escolhido
+   ↓
+espaçamento compacto
+   ↓
+letra e ícone a 90%, depois a 80%
+   ↓
+duas colunas
+   ↓
+duas colunas a 80%
+   ↓
+mínimo legível: texto de 16dp, ícone de 24dp
+   ↓
+só então deslizar
+```
+
+Nunca desce abaixo do mínimo, porque com menos que isso já não dá para ler
+num relance.
+
+### Deslizar numa caixa
+
+```text
+┌──────────────────────────┐
+│ 11:41                    │  ← deslizar aqui: gestos da Home
+│ Quinta-feira, 5 nov      │
+│ ╭──────────────────────╮ │
+│ │ WhatsApp             │ │
+│ │ Spotify              │ │  ← deslizar aqui: a lista anda
+│ │ Instagram            │ │
+│ │ YouTube              │ │
+│ ╰─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─╯ │  ← esbatido: há mais por baixo
+│        ↑ Pesquisar       │  ← deslizar aqui: gestos da Home
+└──────────────────────────┘
+```
+
+- A caixa ocupa a zona dos favoritos, entre o relógio e o "Pesquisar".
+- Um arrasto vertical que começa dentro da caixa move a lista. Fora dela,
+  continua a ser gesto da Home (pesquisa, notificações).
+- Dentro da caixa, tocar, manter premido e deslizar para os lados funcionam
+  como hoje.
+- Se a lista couber inteira, a caixa não desliza e os gestos passam. O
+  Flutter não regista o arrasto quando não há para onde deslizar.
+- Em cima e em baixo a lista esbate-se, para se perceber que há mais.
+- No topo da lista, puxar para baixo não abre as notificações. Decisão:
+  previsível vale mais que esperto. Reavaliar com uso.
+- Carregar em Home volta a lista ao início.
+
+**Técnico:**
+
+- `FavoritesLayout` ganha um fator de escala e o modo; `AppTile` e `AppIcon`
+  recebem o tamanho da letra e do ícone.
+- Preferência nova `settings.favorites_overflow` (`shrink` | `scroll`).
+- Testes com o harness de layout: 20 favoritos nos dois modos e nas duas
+  orientações. Teste de gesto: arrastar dentro da caixa não abre a pesquisa,
+  arrastar fora abre.
+
+## 25.2 Rodar ou não o ecrã inicial — prioridade 1, pequeno
+
+- Definição "Rodar o ecrã inicial": Seguir o sistema / Sempre de pé.
+- `SystemChrome.setPreferredOrientations`. Só afeta o Lume; as outras apps
+  rodam como sempre.
+- Em ecrãs grandes (tablets, dobráveis abertos) o Android 16 ignora esta
+  restrição. Num telemóvel funciona.
+
+## 25.3 Guardar e repor as definições — prioridade 2
+
+- Definições → "Guardar uma cópia" e "Repor uma cópia".
+- Um ficheiro JSON (`lume-definicoes-AAAA-MM-DD.json`) com tudo: definições,
+  favoritos e a sua ordem, apps ocultas, nomes personalizados, símbolos.
+- A pessoa escolhe onde guardar, pelo seletor do Android (Storage Access
+  Framework: `ACTION_CREATE_DOCUMENT` / `ACTION_OPEN_DOCUMENT`). Sem
+  permissões e sem Internet; o próprio seletor deixa guardar no Google Drive.
+- O ficheiro leva a versão do formato. Ao repor, valida tudo, ignora o que
+  não reconhece e mostra um resumo antes de aplicar ("12 favoritos, 3 apps
+  ocultas…").
+- Favoritos de apps que não estão instaladas ficam guardados: aparecem quando
+  a app for instalada.
+
+## 25.4 Apps recentes na pesquisa vazia — prioridade 2
+
+- Ao abrir a pesquisa sem texto, mostrar as 6 apps abertas mais vezes e há
+  menos tempo (frecência), em vez de "Escreva para encontrar uma aplicação".
+- Só conta o que se abre pelo Lume. Não usa a permissão de estatísticas de
+  utilização do Android (`PACKAGE_USAGE_STATS`), que vê tudo o que a pessoa
+  faz no telemóvel.
+- Definição para desligar e botão para apagar o histórico.
+- Também desempata os resultados: com o mesmo nível de correspondência, a
+  mais usada vem primeiro.
+
+## 25.5 Cor de destaque tirada do wallpaper — prioridade 3
+
+- Opção nova na paleta: "Do wallpaper".
+- Kotlin: `WallpaperManager.getWallpaperColors(FLAG_SYSTEM)` e um
+  `OnColorsChangedListener` para acompanhar quando o wallpaper muda. Não
+  precisa de permissões. Existe desde o Android 8.1; abaixo disso a opção
+  não aparece.
+- A cor passa pelo `AccentResolver`, como a cor livre, para manter o
+  contraste.
+- Sem dependências novas (dispensa o pacote `dynamic_color`).
+
+## 25.6 Perfil de trabalho e apps duplicadas — prioridade 3
+
+- Hoje a lista vem de `PackageManager.queryIntentActivities`, que só vê o
+  utilizador principal: as apps do perfil de trabalho e do Dual Messenger da
+  Samsung não aparecem.
+- Passar para `LauncherApps`: `getProfiles()` e `getActivityList(null, user)`
+  para cada perfil; abrir com `startMainActivity(component, user, bounds,
+  null)`; `LauncherApps.Callback` substitui o receiver de instalação e
+  remoção.
+- `InstalledApp` ganha o perfil. Favoritos, apps ocultas, nomes e símbolos
+  passam a usar a chave package + perfil, com migração das chaves antigas
+  (sem perfil = utilizador principal).
+- Uma marca nas apps de trabalho. Com o perfil em pausa, as apps aparecem
+  esbatidas e o Android pede para o retomar.
+- A Pasta Segura da Samsung é isolada de propósito; é provável que não
+  apareça a nenhum launcher de terceiros. A confirmar.
+- Precisa de teste num telemóvel com perfil de trabalho ou Dual Messenger, e
+  quem os cria é o dono do telemóvel.
+
+## 25.7 Capturas de ecrã no README — a qualquer altura, pequeno
+
+- Geradas pelos testes de layout (`LUME_RENDER=1`). As apps são fictícias e o
+  wallpaper é liso, por isso nenhuma captura mostra apps, notificações ou
+  mensagens reais.
+- De pé e deitado, tema claro e escuro, dois ou três estilos de relógio.
+
+## 25.8 Ordem proposta
+
+```text
+v0.1.5   Telemóvel deitado (feito)
+         Mais favoritos — Encolher e Deslizar numa caixa
+         Rodar ou não o ecrã inicial
+   ↓
+v0.1.6   Guardar e repor as definições
+         Apps recentes na pesquisa
+   ↓
+v0.1.7   Cor do wallpaper
+         Perfil de trabalho e apps duplicadas
+
+Sempre   Capturas no README
+```
+
+- Os favoritos vêm primeiro porque são o pedido de quem usa o Lume.
+- Guardar e repor vem antes de mais personalização: quanto mais há para
+  configurar, mais custa perder tudo numa reinstalação.
+- O perfil de trabalho fica para o fim: é a maior mudança no Kotlin, mexe nas
+  chaves guardadas e só se testa com um telemóvel preparado para isso.
