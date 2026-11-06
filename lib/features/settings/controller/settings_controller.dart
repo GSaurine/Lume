@@ -71,6 +71,12 @@ class SettingsNotifier extends Notifier<LauncherSettings> {
 
   void setFavoritesLimit(int value) => _update(state.copyWith(favoritesLimit: value));
 
+  void setFavoritesOverflow(FavoritesOverflow value) =>
+      _update(state.copyWith(favoritesOverflow: value));
+
+  void setLockPortrait({required bool value}) =>
+      _update(state.copyWith(lockPortrait: value));
+
   void setGesture(LauncherGesture gesture, GestureAction action) {
     final Map<LauncherGesture, GestureAction> next =
         Map<LauncherGesture, GestureAction>.of(state.gestures)..[gesture] = action;

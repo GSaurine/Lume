@@ -173,6 +173,15 @@ class AppearanceSettingsScreen extends ConsumerWidget {
               subtitle: const Text('A coluna A-Z à direita da Home'),
               onChanged: (bool value) => controller.setShowAlphabetIndex(value: value),
             ),
+            SwitchListTile(
+              value: settings.lockPortrait,
+              title: const Text('Manter sempre de pé'),
+              subtitle: const Text(
+                'O Lume não roda quando o telemóvel se deita. As outras '
+                'aplicações continuam a rodar.',
+              ),
+              onChanged: (bool value) => controller.setLockPortrait(value: value),
+            ),
 
             const SettingsSectionTitle('Ícones'),
             RadioGroup<IconStyle>(
@@ -244,6 +253,39 @@ class AppearanceSettingsScreen extends ConsumerWidget {
               divisions: LauncherMetrics.maxFavorites - LauncherMetrics.minFavorites,
               format: (double v) => '${v.round()}',
               onChanged: (double value) => controller.setFavoritesLimit(value.round()),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Text(
+                'Quando não cabem todos',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ),
+            RadioGroup<FavoritesOverflow>(
+              groupValue: settings.favoritesOverflow,
+              onChanged: (FavoritesOverflow? value) {
+                if (value != null) controller.setFavoritesOverflow(value);
+              },
+              child: const Column(
+                children: <Widget>[
+                  RadioListTile<FavoritesOverflow>(
+                    value: FavoritesOverflow.shrink,
+                    title: Text('Encolher'),
+                    subtitle: Text(
+                      'Letra e ícones mais pequenos e, se for preciso, duas '
+                      'colunas. Ficam todos à vista.',
+                    ),
+                  ),
+                  RadioListTile<FavoritesOverflow>(
+                    value: FavoritesOverflow.scroll,
+                    title: Text('Deslizar numa caixa'),
+                    subtitle: Text(
+                      'Mantém o tamanho. Desliza-se dentro dos favoritos; fora '
+                      'deles, os gestos da Home continuam a funcionar.',
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SettingsSectionTitle('Wallpaper'),
             Consumer(

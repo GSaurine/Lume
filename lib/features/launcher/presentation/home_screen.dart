@@ -64,6 +64,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             _GestureLayer(
               onGesture: _handleGesture,
               onReorder: () => ref.read(reorderModeProvider.notifier).toggle(),
+              doubleTapEnabled:
+                  settings.actionFor(LauncherGesture.doubleTap) != GestureAction.none,
             ),
 
             SafeArea(
@@ -339,10 +341,19 @@ class _ClockAndDate extends StatelessWidget {
 
 /// Camada transparente que interpreta os gestos na área livre da Home.
 class _GestureLayer extends StatefulWidget {
-  const _GestureLayer({required this.onGesture, required this.onReorder});
+  const _GestureLayer({
+    required this.onGesture,
+    required this.onReorder,
+    required this.doubleTapEnabled,
+  });
 
   final Future<void> Function(LauncherGesture gesture) onGesture;
   final VoidCallback onReorder;
+
+  /// Só se escuta o toque duplo quando ele faz alguma coisa. Enquanto o
+  /// escuta, o Flutter segura cada toque uns 300ms à espera de um segundo —
+  /// e abrir um favorito ficava esse tempo mais lento sem razão.
+  final bool doubleTapEnabled;
 
   @override
   State<_GestureLayer> createState() => _GestureLayerState();
@@ -359,7 +370,9 @@ class _GestureLayerState extends State<_GestureLayer> {
     return Positioned.fill(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onDoubleTap: () => widget.onGesture(LauncherGesture.doubleTap),
+        onDoubleTap: widget.doubleTapEnabled
+            ? () => widget.onGesture(LauncherGesture.doubleTap)
+            : null,
         onLongPress: () async {
           await HapticFeedback.mediumImpact();
           if (context.mounted) {

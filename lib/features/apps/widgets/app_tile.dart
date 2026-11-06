@@ -25,6 +25,7 @@ class AppTile extends ConsumerWidget {
     this.overWallpaper = false,
     this.textAlign,
     this.spacing,
+    this.iconSize = LauncherMetrics.iconSize,
     super.key,
   });
 
@@ -53,6 +54,9 @@ class AppTile extends ConsumerWidget {
   /// favoritos usam-no quando não cabem todos com o espaço que ele escolheu.
   final double? spacing;
 
+  /// Lado do ícone. Os favoritos encolhem-no quando são muitos.
+  final double iconSize;
+
   /// O espaçamento de [dense].
   static const double denseSpacing = 4;
 
@@ -63,9 +67,9 @@ class AppTile extends ConsumerWidget {
     required double lineHeight,
     required double spacing,
     required bool showIcons,
+    double iconSize = LauncherMetrics.iconSize,
   }) {
-    final double content =
-        showIcons && LauncherMetrics.iconSize > lineHeight ? LauncherMetrics.iconSize : lineHeight;
+    final double content = showIcons && iconSize > lineHeight ? iconSize : lineHeight;
     return content + 2 * (8 + spacing);
   }
 
@@ -90,8 +94,9 @@ class AppTile extends ConsumerWidget {
             centred ? MainAxisAlignment.center : MainAxisAlignment.start,
         children: <Widget>[
           if (showIcons) ...<Widget>[
-            AppIcon(app: app),
-            const SizedBox(width: 14),
+            AppIcon(app: app, size: iconSize),
+            // O intervalo acompanha o ícone, para a proporção não mudar.
+            SizedBox(width: 14 * iconSize / LauncherMetrics.iconSize),
           ],
           Flexible(
             fit: centred ? FlexFit.loose : FlexFit.tight,
@@ -134,6 +139,10 @@ class AppTile extends ConsumerWidget {
   }
 
   Future<void> _launch(BuildContext context, WidgetRef ref) async {
+    // O toque pode chegar com atraso (com o toque duplo ligado na Home, o
+    // Flutter espera para ver se vem um segundo), e entretanto o item pode
+    // ter saído do ecrã.
+    if (!context.mounted) return;
     final Rect? bounds = _globalBounds(context);
     final double ratio = MediaQuery.devicePixelRatioOf(context);
     final NavigatorState navigator = Navigator.of(context);

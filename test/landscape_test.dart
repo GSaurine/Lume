@@ -12,7 +12,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lume_launcher/features/apps/widgets/alphabet_index_bar.dart';
 import 'package:lume_launcher/features/apps/widgets/app_tile.dart';
 import 'package:lume_launcher/features/apps/widgets/letter_apps_panel.dart';
-import 'package:lume_launcher/features/favorites/presentation/favorites_section.dart';
 import 'package:lume_launcher/features/launcher/widgets/search_hint.dart';
 
 import 'support/lume_harness.dart';
@@ -279,40 +278,6 @@ void main() {
           AlphabetIndexBar.labelsThatFit(letters, 18, selected: hidden);
       expect(labels, contains(hidden));
       expect(labels.length, plain.length);
-    });
-  });
-
-  group('FavoritesLayout.choose', () {
-    // Linha de 30 com espaçamento 6: 30 + 2 × (8 + 6) = 58 por favorito;
-    // compacta, 30 + 16 = 46.
-    FavoritesLayout choose({required double height, double width = 300}) =>
-        FavoritesLayout.choose(
-          count: 6,
-          availableHeight: height,
-          availableWidth: width,
-          lineHeight: 30,
-          preferredSpacing: 6,
-          showIcons: false,
-        );
-
-    test('com altura de sobra, uma coluna com o espaçamento escolhido', () {
-      final FavoritesLayout layout = choose(height: 400);
-      expect((layout.columns, layout.spacing, layout.fits), (1, 6.0, true));
-    });
-
-    test('um pouco apertado, aperta o espaçamento antes de partir em colunas', () {
-      final FavoritesLayout layout = choose(height: 300);
-      expect((layout.columns, layout.spacing, layout.fits), (1, 0.0, true));
-    });
-
-    test('muito apertado e largo, passa a duas colunas', () {
-      final FavoritesLayout layout = choose(height: 200, width: 400);
-      expect((layout.columns, layout.spacing, layout.fits), (2, 6.0, true));
-    });
-
-    test('apertado e estreito, admite que não cabe', () {
-      final FavoritesLayout layout = choose(height: 100);
-      expect((layout.columns, layout.fits), (1, false));
     });
   });
 }

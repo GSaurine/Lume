@@ -50,7 +50,9 @@ void main() {
       searchPackageNames: true,
       searchAutoFocus: false,
       searchOpensSingleResult: true,
-      favoritesLimit: 9,
+      favoritesLimit: 15,
+      favoritesOverflow: FavoritesOverflow.scroll,
+      lockPortrait: true,
       gestures: <LauncherGesture, GestureAction>{
         LauncherGesture.swipeUp: GestureAction.openAppList,
         LauncherGesture.swipeDown: GestureAction.none,
@@ -69,7 +71,7 @@ void main() {
 
     expect(settings.copyWith(fontScale: 99).fontScale, lessThanOrEqualTo(1.35));
     expect(settings.copyWith(fontScale: 0).fontScale, greaterThanOrEqualTo(0.85));
-    expect(settings.copyWith(favoritesLimit: 100).favoritesLimit, 10);
+    expect(settings.copyWith(favoritesLimit: 100).favoritesLimit, 20);
     expect(settings.copyWith(favoritesLimit: 0).favoritesLimit, 3);
     expect(settings.copyWith(panelOpacity: 5).panelOpacity, 1);
     expect(settings.copyWith(panelOpacity: 0).panelOpacity, greaterThanOrEqualTo(0.7));

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -25,6 +26,10 @@ class FakePlatformLauncherService extends PlatformLauncherService {
   final bool defaultLauncher;
   final List<String> launched = <String>[];
 
+  /// Para o teste fingir que o Android mandou um evento (ex.: Home premido).
+  final StreamController<LauncherPlatformEvent> androidEvents =
+      StreamController<LauncherPlatformEvent>.broadcast();
+
   @override
   Future<List<InstalledApp>> getInstalledApps() async => apps;
 
@@ -32,7 +37,9 @@ class FakePlatformLauncherService extends PlatformLauncherService {
   Future<Uint8List?> getAppIcon(String packageName, {int size = 0}) async => null;
 
   @override
-  Stream<LauncherPlatformEvent> events() => const Stream<LauncherPlatformEvent>.empty();
+  Stream<LauncherPlatformEvent> events() => androidEvents.stream;
+
+  Future<void> dispose() => androidEvents.close();
 
   @override
   Future<bool> isDefaultLauncher() async => defaultLauncher;
@@ -145,17 +152,44 @@ class LayoutErrors {
 
 final GlobalKey _captureKey = GlobalKey();
 
+/// O que um teste pode inspecionar depois de montar o Lume.
+class LumeSession {
+  LumeSession(this.platform);
+
+  /// O "Kotlin" falso: guarda as aplicações que o Lume pediu para abrir.
+  final FakePlatformLauncherService platform;
+
+  /// Pedidos ao sistema pelo canal da plataforma (vibração, rotação…).
+  final List<MethodCall> systemCalls = <MethodCall>[];
+
+  /// A última orientação pedida com SystemChrome.setPreferredOrientations.
+  /// Vazia: segue o sistema.
+  List<String>? get preferredOrientations {
+    for (final MethodCall call in systemCalls.reversed) {
+      if (call.method == 'SystemChrome.setPreferredOrientations') {
+        return (call.arguments as List<Object?>).cast<String>();
+      }
+    }
+    return null;
+  }
+}
+
 /// Monta o Lume inteiro num ecrã com esta forma.
 ///
 /// `prefs` são preferências como o Lume as guarda; `defaultLauncher: false`
 /// faz aparecer o banner "Definir o Lume como ecrã inicial", que é o caso de
 /// quem acabou de instalar.
-Future<void> pumpLume(
+Future<LumeSession> pumpLume(
   WidgetTester tester,
   DeviceShape shape, {
   Map<String, Object> prefs = const <String, Object>{},
   bool defaultLauncher = true,
 }) async {
+  final LumeSession session = LumeSession(
+    FakePlatformLauncherService(apps: sampleApps(), defaultLauncher: defaultLauncher),
+  );
+  addTearDown(session.platform.dispose);
+
   tester.view
     ..devicePixelRatio = DeviceShape.pixelRatio
     ..physicalSize = shape.size * DeviceShape.pixelRatio
@@ -181,7 +215,10 @@ Future<void> pumpLume(
   // resposta, o `await HapticFeedback...` nunca termina e o menu não abre.
   tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
     SystemChannels.platform,
-    (MethodCall call) async => null,
+    (MethodCall call) async {
+      session.systemCalls.add(call);
+      return null;
+    },
   );
   addTearDown(() => tester.binding.defaultBinaryMessenger
       .setMockMethodCallHandler(SystemChannels.platform, null));
@@ -194,9 +231,7 @@ Future<void> pumpLume(
     ProviderScope(
       overrides: [
         preferencesServiceProvider.overrideWithValue(preferences),
-        platformLauncherServiceProvider.overrideWithValue(
-          FakePlatformLauncherService(apps: sampleApps(), defaultLauncher: defaultLauncher),
-        ),
+        platformLauncherServiceProvider.overrideWithValue(session.platform),
       ],
       child: RepaintBoundary(
         key: _captureKey,
@@ -226,6 +261,7 @@ Future<void> pumpLume(
   // e para o banner do launcher padrão.
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 50));
+  return session;
 }
 
 /// Desmonta o Lume, para os timers do relógio e da data serem cancelados.

@@ -2,6 +2,29 @@
 
 ## Por publicar
 
+### Adicionado
+
+- **Até 20 favoritos na Home** (antes eram 10), e uma definição nova em
+  Aparência → Favoritos, "Quando não cabem todos":
+  - **Encolher** (de origem): primeiro aperta o espaçamento, depois encolhe a
+    letra e os ícones até um mínimo que ainda se lê (16dp), e só então passa
+    a duas colunas. Em duas colunas continua a encolher até os nomes caberem
+    inteiros. Fica tudo à vista sem deslizar.
+  - **Deslizar numa caixa**: mantém o tamanho e a lista desliza dentro da
+    sua zona, com as pontas esbatidas quando há mais. Deslizar fora da caixa
+    continua a abrir a pesquisa e as notificações; para os lados, tocar e
+    manter premido funcionam também dentro dela. Carregar em Home volta a
+    lista ao início.
+- **Manter sempre de pé** (Aparência → Ecrã inicial): o Lume deixa de rodar
+  quando o telemóvel se deita. As outras aplicações continuam a rodar.
+
+### Melhorado
+
+- **Os favoritos abrem mais depressa.** A Home estava sempre à escuta do
+  toque duplo, mesmo sem ação configurada (que é o de origem), e por isso
+  cada toque esperava uns 300ms para ver se vinha um segundo. Agora só
+  espera quando o toque duplo faz alguma coisa.
+
 ### Corrigido
 
 - **Telemóvel deitado.** O ecrã inicial era uma coluna pensada para o

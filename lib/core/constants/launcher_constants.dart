@@ -42,6 +42,8 @@ abstract final class PreferenceKeys {
   static const String searchAutoFocus = 'settings.search_auto_focus';
   static const String searchOpensSingleResult = 'settings.search_opens_single_result';
   static const String favoritesLimit = 'settings.favorites_limit';
+  static const String favoritesOverflow = 'settings.favorites_overflow';
+  static const String lockPortrait = 'settings.lock_portrait';
 
   /// Prefixo; a chave final é `settings.gesture.<gesto>`.
   static const String gesturePrefix = 'settings.gesture.';
@@ -73,7 +75,7 @@ abstract final class LauncherMetrics {
   static const double maxPanelOpacity = 1;
 
   static const int minFavorites = 3;
-  static const int maxFavorites = 10;
+  static const int maxFavorites = 20;
 
   /// Distância mínima, em logical pixels, para um swipe contar.
   static const double swipeThreshold = 60;

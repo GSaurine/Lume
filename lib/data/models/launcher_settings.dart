@@ -174,6 +174,29 @@ enum ContentAlignment {
   }
 }
 
+/// O que fazer quando os favoritos não cabem na zona que têm na Home.
+enum FavoritesOverflow {
+  /// Apertar o espaçamento, encolher letra e ícones e, se preciso, passar a
+  /// duas colunas — tudo à vista, sem deslizar.
+  shrink('shrink', 'Encolher'),
+
+  /// Manter o tamanho e deslizar a lista dentro da sua caixa. Os gestos da
+  /// Home continuam a funcionar fora dela.
+  scroll('scroll', 'Deslizar numa caixa');
+
+  const FavoritesOverflow(this.key, this.label);
+
+  final String key;
+  final String label;
+
+  static FavoritesOverflow parse(String? key) {
+    for (final FavoritesOverflow value in FavoritesOverflow.values) {
+      if (value.key == key) return value;
+    }
+    return FavoritesOverflow.shrink;
+  }
+}
+
 /// Cores de destaque à escolha.
 ///
 /// Uma paleta fixa em vez de um seletor livre: metade das cores possíveis não
@@ -250,6 +273,8 @@ class LauncherSettings {
     this.searchAutoFocus = true,
     this.searchOpensSingleResult = false,
     this.favoritesLimit = 6,
+    this.favoritesOverflow = FavoritesOverflow.shrink,
+    this.lockPortrait = false,
     this.gestures = defaultGestures,
   });
 
@@ -307,6 +332,11 @@ class LauncherSettings {
   /// Abre logo o app quando a pesquisa tem um único resultado.
   final bool searchOpensSingleResult;
   final int favoritesLimit;
+  final FavoritesOverflow favoritesOverflow;
+
+  /// O Lume fica sempre de pé, mesmo com a rotação automática ligada. Só
+  /// afeta o Lume: as outras aplicações continuam a rodar.
+  final bool lockPortrait;
   final Map<LauncherGesture, GestureAction> gestures;
 
   GestureAction actionFor(LauncherGesture gesture) =>
@@ -342,6 +372,8 @@ class LauncherSettings {
     bool? searchAutoFocus,
     bool? searchOpensSingleResult,
     int? favoritesLimit,
+    FavoritesOverflow? favoritesOverflow,
+    bool? lockPortrait,
     Map<LauncherGesture, GestureAction>? gestures,
   }) {
     return LauncherSettings(
@@ -372,6 +404,8 @@ class LauncherSettings {
       searchOpensSingleResult: searchOpensSingleResult ?? this.searchOpensSingleResult,
       favoritesLimit: (favoritesLimit ?? this.favoritesLimit)
           .clamp(LauncherMetrics.minFavorites, LauncherMetrics.maxFavorites),
+      favoritesOverflow: favoritesOverflow ?? this.favoritesOverflow,
+      lockPortrait: lockPortrait ?? this.lockPortrait,
       gestures: gestures ?? this.gestures,
     );
   }
@@ -400,6 +434,8 @@ class LauncherSettings {
           other.searchAutoFocus == searchAutoFocus &&
           other.searchOpensSingleResult == searchOpensSingleResult &&
           other.favoritesLimit == favoritesLimit &&
+          other.favoritesOverflow == favoritesOverflow &&
+          other.lockPortrait == lockPortrait &&
           mapEquals(other.gestures, gestures);
 
   @override
@@ -426,6 +462,8 @@ class LauncherSettings {
         searchAutoFocus,
         searchOpensSingleResult,
         favoritesLimit,
+        favoritesOverflow,
+        lockPortrait,
         Object.hashAll(gestures.entries.map((e) => Object.hash(e.key, e.value))),
       ]);
 }

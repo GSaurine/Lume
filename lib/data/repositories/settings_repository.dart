@@ -56,6 +56,10 @@ class SettingsRepository {
       ),
       favoritesLimit:
           _prefs.getInt(PreferenceKeys.favoritesLimit, fallback: defaults.favoritesLimit),
+      favoritesOverflow:
+          FavoritesOverflow.parse(_prefs.getString(PreferenceKeys.favoritesOverflow)),
+      lockPortrait:
+          _prefs.getBool(PreferenceKeys.lockPortrait, fallback: defaults.lockPortrait),
       gestures: _loadGestures(),
     );
   }
@@ -90,6 +94,8 @@ class SettingsRepository {
         value: settings.searchOpensSingleResult,
       ),
       _prefs.setInt(PreferenceKeys.favoritesLimit, settings.favoritesLimit),
+      _prefs.setString(PreferenceKeys.favoritesOverflow, settings.favoritesOverflow.key),
+      _prefs.setBool(PreferenceKeys.lockPortrait, value: settings.lockPortrait),
       for (final MapEntry<LauncherGesture, GestureAction> entry in settings.gestures.entries)
         _prefs.setString('${PreferenceKeys.gesturePrefix}${entry.key.key}', entry.value.key),
     ]);
